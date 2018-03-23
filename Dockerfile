@@ -23,7 +23,9 @@ ENV GITLAB_INSTALL_DIR="${GITLAB_HOME}/gitlab" \
     GITLAB_BUILD_DIR="${GITLAB_CACHE_DIR}/build" \
     GITLAB_RUNTIME_DIR="${GITLAB_CACHE_DIR}/runtime"
 
-RUN yum install -y sudo wget
+RUN rpm -Uvh https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
+
+RUN yum install -y sudo wget libicu-devel gcc-c++ cmake bzip2 mysql-devel postgresql-libs re2-devel
 RUN curl -sL https://bootstrap.pypa.io/get-pip.py | python && \
     pip install supervisor
 
