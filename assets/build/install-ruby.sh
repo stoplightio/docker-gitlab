@@ -22,13 +22,11 @@ mkdir /tmp/ruby && \
     cd ruby-${RUBY_VERSION} && \
     ./configure --disable-install-rdoc && \
     make && \
-    make prefix=/usr/local install && \
+    make prefix=/ install && \
     cd /tmp
 
 if [[ $? -eq 0 ]]; then
     rm -rf /tmp/ruby
 fi
-
-ln -s /usr/local/bin/ruby /usr/bin/ruby
 
 gem install --no-document bundler
