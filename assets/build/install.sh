@@ -1,5 +1,5 @@
 #!/bin/bash
-set -e
+set -ex
 
 GITLAB_CLONE_URL=https://gitlab.com/gitlab-org/gitlab-ce.git
 GITLAB_SHELL_URL=https://gitlab.com/gitlab-org/gitlab-shell/repository/archive.tar.gz
@@ -9,12 +9,7 @@ GITLAB_GITALY_URL=https://gitlab.com/gitlab-org/gitaly.git
 
 GEM_CACHE_DIR="${GITLAB_BUILD_DIR}/cache"
 
-BUILD_DEPENDENCIES="gcc g++ make patch pkg-config cmake paxctl \
-  libc6-dev ruby${RUBY_VERSION}-dev \
-  libmysqlclient-dev libpq-dev zlib1g-dev libyaml-dev libssl-dev \
-  libgdbm-dev libreadline-dev libncurses5-dev libffi-dev \
-  libxml2-dev libxslt-dev libcurl4-openssl-dev libicu-dev \
-  gettext libkrb5-dev"
+BUILD_DEPENDENCIES="gcc make patch cmake gettext"
 
 ## Execute a command as GITLAB_USER
 exec_as_git() {
@@ -25,23 +20,14 @@ exec_as_git() {
   fi
 }
 
-# install build dependencies for gem installation
-apt-get update
-DEBIAN_FRONTEND=noninteractive apt-get install -y ${BUILD_DEPENDENCIES}
-
-# PaX-mark ruby
-# Applying the mark late here does make the build usable on PaX kernels, but
-# still the build itself must be executed on a non-PaX kernel. It's done here
-# only for simplicity.
-paxctl -Cm `which ruby${RUBY_VERSION}`
-# https://en.wikibooks.org/wiki/Grsecurity/Application-specific_Settings#Node.js
-paxctl -Cm `which nodejs`
+${GITLAB_BUILD_DIR}/install-git.sh
+${GITLAB_BUILD_DIR}/install-ruby.sh
 
 # remove the host keys generated during openssh-server installation
 rm -rf /etc/ssh/ssh_host_*_key /etc/ssh/ssh_host_*_key.pub
 
 # add ${GITLAB_USER} user
-adduser --disabled-login --gecos 'GitLab' ${GITLAB_USER}
+adduser --shell /bin/false ${GITLAB_USER}
 passwd -d ${GITLAB_USER}
 
 # set PATH (fixes cron job PATH issues)
