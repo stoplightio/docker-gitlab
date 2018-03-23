@@ -6,7 +6,6 @@ ENV GITLAB_VERSION=10.5.5 \
     GOLANG_VERSION=1.9.4 \
     GITLAB_SHELL_VERSION=6.0.3 \
     GITLAB_WORKHORSE_VERSION=3.6.0 \
-    GITLAB_PAGES_VERSION=0.6.1 \
     GITALY_SERVER_VERSION=0.81.0 \
     GITLAB_USER="git" \
     GITLAB_HOME="/home/git" \
@@ -25,6 +24,8 @@ ENV GITLAB_INSTALL_DIR="${GITLAB_HOME}/gitlab" \
     GITLAB_RUNTIME_DIR="${GITLAB_CACHE_DIR}/runtime"
 
 RUN yum install -y sudo wget
+RUN curl -sL https://bootstrap.pypa.io/get-pip.py | python && \
+    pip install supervisor
 
 COPY assets/build/ ${GITLAB_BUILD_DIR}/
 RUN bash ${GITLAB_BUILD_DIR}/install.sh
