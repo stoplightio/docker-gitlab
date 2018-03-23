@@ -22,7 +22,8 @@ mkdir /tmp/ruby && \
     cd ruby-${RUBY_VERSION} && \
     ./configure --disable-install-rdoc && \
     make && \
-    make prefix=/usr/local install
+    make prefix=/usr/local install && \
+    cd /tmp
 
 if [[ $? -eq 0 ]]; then
     rm -rf /tmp/ruby
