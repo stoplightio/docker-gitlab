@@ -42,7 +42,7 @@ exec_as_git git config --global repack.writeBitmaps true
 
 # shallow clone gitlab-ce
 echo "Cloning gitlab-ce v.${GITLAB_VERSION}..."
-exec_as_git git clone -q -b v${GITLAB_VERSION} --depth 1 ${GITLAB_CLONE_URL} ${GITLAB_INSTALL_DIR}
+exec_as_git git clone -q -b stoplight/develop --depth 1 ${GITLAB_CLONE_URL} ${GITLAB_INSTALL_DIR}
 
 GITLAB_SHELL_VERSION=${GITLAB_SHELL_VERSION:-$(cat ${GITLAB_INSTALL_DIR}/GITLAB_SHELL_VERSION)}
 GITLAB_WORKHORSE_VERSION=${GITLAB_WORKHOUSE_VERSION:-$(cat ${GITLAB_INSTALL_DIR}/GITLAB_WORKHORSE_VERSION)}
@@ -74,22 +74,22 @@ exec_as_git rm -rf ${GITLAB_HOME}/repositories
 
 # download gitlab-workhorse
 echo "Cloning gitlab-workhorse v.${GITLAB_WORKHORSE_VERSION}..."
-exec_as_git git clone -q -b stoplight/develop --depth 1 ${GITLAB_WORKHORSE_URL} ${GITLAB_WORKHORSE_INSTALL_DIR}
+exec_as_git git clone -q -b v${GITLAB_WORKHORSE_VERSION} --depth 1 ${GITLAB_WORKHORSE_URL} ${GITLAB_WORKHORSE_INSTALL_DIR}
 chown -R ${GITLAB_USER}: ${GITLAB_WORKHORSE_INSTALL_DIR}
 
 #install gitlab-workhorse
 cd ${GITLAB_WORKHORSE_INSTALL_DIR}
 PATH=/tmp/go/bin:$PATH GOROOT=/tmp/go make install
 
-# #download pages
-# echo "Downloading gitlab-pages v.${GITLAB_PAGES_VERSION}..."
-# exec_as_git git clone -q -b v${GITLAB_PAGES_VERSION} --depth 1 ${GITLAB_PAGES_URL} ${GITLAB_PAGES_INSTALL_DIR}
-# chown -R ${GITLAB_USER}: ${GITLAB_PAGES_INSTALL_DIR}
+#download pages
+echo "Downloading gitlab-pages v.${GITLAB_PAGES_VERSION}..."
+exec_as_git git clone -q -b v${GITLAB_PAGES_VERSION} --depth 1 ${GITLAB_PAGES_URL} ${GITLAB_PAGES_INSTALL_DIR}
+chown -R ${GITLAB_USER}: ${GITLAB_PAGES_INSTALL_DIR}
 
-# #install gitlab-pages
-# cd ${GITLAB_PAGES_INSTALL_DIR}
-# PATH=/tmp/go/bin:$PATH GOROOT=/tmp/go make
-# cp -f gitlab-pages /usr/local/bin/
+#install gitlab-pages
+cd ${GITLAB_PAGES_INSTALL_DIR}
+PATH=/tmp/go/bin:$PATH GOROOT=/tmp/go make
+cp -f gitlab-pages /usr/local/bin/
 
 # download gitaly
 echo "Downloading gitaly v.${GITALY_SERVER_VERSION}..."
