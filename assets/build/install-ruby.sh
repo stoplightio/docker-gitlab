@@ -28,5 +28,6 @@ if [[ $? -eq 0 ]]; then
     rm -rf /tmp/ruby
 fi
 
- ln -s /usr/local/bin/ruby /usr/bin/ruby
- 
+ln -s /usr/local/bin/ruby /usr/bin/ruby
+
+gem install --no-document bundler
