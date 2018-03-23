@@ -27,3 +27,6 @@ mkdir /tmp/ruby && \
 if [[ $? -eq 0 ]]; then
     rm -rf /tmp/ruby
 fi
+
+ ln -s /usr/local/bin/ruby /usr/bin/ruby
+ 
