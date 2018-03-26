@@ -133,7 +133,8 @@ exec_as_git cp ${GITLAB_INSTALL_DIR}/config/gitlab.yml.example ${GITLAB_INSTALL_
 exec_as_git cp ${GITLAB_INSTALL_DIR}/config/database.yml.mysql ${GITLAB_INSTALL_DIR}/config/database.yml
 
 # Installs nodejs packages required to compile webpack
-exec_as_git curl -o- -L https://yarnpkg.com/install.sh | bash -s -- --version 1.3.2
+curl -o /tmp/install-yarn.sh https://yarnpkg.com/install.sh && chmod +x /tmp/install-yarn.sh
+exec_as_git /tmp/install-yarn.sh --version 1.3.2
 exec_as_git /home/git/.yarn/bin/yarn install --production --pure-lockfile
 exec_as_git /home/git/.yarn/bin/yarn add ajv@^4.0.0
 
