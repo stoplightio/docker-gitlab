@@ -29,6 +29,9 @@ RUN sed -i s/keepcache=0/keepcache=1/ /etc/yum.conf
 # enable epel repository
 RUN rpm -Uvh https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
 
+# enable postgres repository
+RUN rpm -Uvh https://download.postgresql.org/pub/repos/yum/9.6/redhat/rhel-7-x86_64/pgdg-centos96-9.6-3.noarch.rpm
+
 # install build and runtime dependencies
 RUN yum install -y \
     sudo \
@@ -38,7 +41,7 @@ RUN yum install -y \
     cmake \
     bzip2 \
     mysql-devel \
-    postgresql-devel \
+    postgresql96-devel \
     re2-devel \
     nginx \
     supervisor
