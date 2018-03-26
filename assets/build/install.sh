@@ -175,15 +175,6 @@ chmod +x /etc/init.d/gitlab
 # disable default nginx configuration and enable gitlab's nginx configuration
 rm -rf /etc/nginx/sites-enabled/default
 
-# configure sshd
-sed -i \
-  -e "s|^[#]*UsePAM yes|UsePAM no|" \
-  -e "s|^[#]*UsePrivilegeSeparation yes|UsePrivilegeSeparation no|" \
-  -e "s|^[#]*PasswordAuthentication yes|PasswordAuthentication no|" \
-  -e "s|^[#]*LogLevel INFO|LogLevel VERBOSE|" \
-  /etc/ssh/sshd_config
-echo "UseDNS no" >> /etc/ssh/sshd_config
-
 # move supervisord.log file to ${GITLAB_LOG_DIR}/supervisor/
 sed -i "s|^[#]*logfile=.*|logfile=${GITLAB_LOG_DIR}/supervisor/supervisord.log ;|" /etc/supervisor/supervisord.conf
 
@@ -328,19 +319,6 @@ stdout_logfile=${GITLAB_INSTALL_DIR}/log/%(program_name)s.log
 stderr_logfile=${GITLAB_INSTALL_DIR}/log/%(program_name)s.log
 EOF
 
-# configure supervisor to start sshd
-mkdir -p /var/run/sshd
-cat > /etc/supervisor/conf.d/sshd.conf <<EOF
-[program:sshd]
-directory=/
-command=/usr/sbin/sshd -D -E ${GITLAB_LOG_DIR}/supervisor/%(program_name)s.log
-user=root
-autostart=true
-autorestart=true
-stdout_logfile=${GITLAB_LOG_DIR}/supervisor/%(program_name)s.log
-stderr_logfile=${GITLAB_LOG_DIR}/supervisor/%(program_name)s.log
-EOF
-
 # configure supervisord to start nginx
 cat > /etc/supervisor/conf.d/nginx.conf <<EOF
 [program:nginx]
@@ -367,6 +345,6 @@ stdout_logfile=${GITLAB_LOG_DIR}/supervisor/%(program_name)s.log
 stderr_logfile=${GITLAB_LOG_DIR}/supervisor/%(program_name)s.log
 EOF
 
-# purge build dependencies and cleanup apt
-DEBIAN_FRONTEND=noninteractive apt-get purge -y --auto-remove ${BUILD_DEPENDENCIES}
-rm -rf /var/lib/apt/lists/*
+# purge build dependencies and cleanup yum
+yum autoremove -y
+rm -rf /var/cache/yum/*
