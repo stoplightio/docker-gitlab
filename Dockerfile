@@ -25,7 +25,7 @@ ENV GITLAB_INSTALL_DIR="${GITLAB_HOME}/gitlab" \
 
 RUN rpm -Uvh https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
 
-RUN yum install -y sudo wget libicu-devel gcc-c++ cmake bzip2 mysql-devel postgresql-libs re2-devel
+RUN yum install -y sudo wget libicu-devel gcc-c++ cmake bzip2 mysql-devel postgresql-devel re2-devel
 RUN curl -sL https://bootstrap.pypa.io/get-pip.py | python && \
     pip install supervisor
 
