@@ -42,6 +42,7 @@ RUN yum install -y \
     bzip2 \
     mysql-devel \
     postgresql96-devel \
+    postgresql96 \
     re2-devel \
     nginx \
     supervisor
