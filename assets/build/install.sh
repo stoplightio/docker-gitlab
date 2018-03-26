@@ -22,6 +22,7 @@ exec_as_git() {
 
 ${GITLAB_BUILD_DIR}/install-git.sh
 ${GITLAB_BUILD_DIR}/install-ruby.sh
+${GITLAB_BUILD_DIR}/install-node.sh
 
 # remove the host keys generated during openssh-server installation
 rm -rf /etc/ssh/ssh_host_*_key /etc/ssh/ssh_host_*_key.pub
