@@ -40,11 +40,8 @@ RUN yum install -y \
     mysql-devel \
     postgresql-devel \
     re2-devel \
-    nginx
-
-# install pip + supervisord
-RUN curl -sL https://bootstrap.pypa.io/get-pip.py | python && \
-    pip install supervisor
+    nginx \
+    supervisor
 
 # install git from source
 COPY assets/build/install-git.sh ${GITLAB_BUILD_DIR}/
