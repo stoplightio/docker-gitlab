@@ -22,7 +22,7 @@ services:
 
   gitlab:
     restart: always
-    image: sameersbn/gitlab:10.5.5
+    image: quay.io/stoplight/gitlab:lastest
     depends_on:
     - redis
     - postgresql
@@ -32,7 +32,7 @@ services:
     volumes:
     - /srv/docker/gitlab/gitlab:/home/git/data:Z
     environment:
-    - DEBUG=false
+    - DEBUG=true
 
     - DB_ADAPTER=postgresql
     - DB_HOST=postgresql
@@ -68,7 +68,7 @@ services:
     - GITLAB_EMAIL_REPLY_TO=noreply@example.com
     - GITLAB_INCOMING_EMAIL_ADDRESS=reply@example.com
 
-    - GITLAB_BACKUP_SCHEDULE=daily
+    - GITLAB_BACKUP_SCHEDULE=disable
     - GITLAB_BACKUP_TIME=01:00
 
     - SMTP_ENABLED=false
