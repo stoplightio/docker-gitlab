@@ -23,8 +23,13 @@ ENV GITLAB_INSTALL_DIR="${GITLAB_HOME}/gitlab" \
     GITLAB_BUILD_DIR="${GITLAB_CACHE_DIR}/build" \
     GITLAB_RUNTIME_DIR="${GITLAB_CACHE_DIR}/runtime"
 
+# cache rpm packages
+RUN sed -i s/keepcache=0/keepcache=1/ /etc/yum.conf
+
+# enable epel repository
 RUN rpm -Uvh https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
 
+# install build and runtime dependencies
 RUN yum install -y \
     sudo \
     wget \
@@ -37,11 +42,29 @@ RUN yum install -y \
     re2-devel \
     nginx
 
+# install pip + supervisord
 RUN curl -sL https://bootstrap.pypa.io/get-pip.py | python && \
     pip install supervisor
 
-COPY assets/build/ ${GITLAB_BUILD_DIR}/
-RUN bash ${GITLAB_BUILD_DIR}/install.sh
+# install git from source
+COPY assets/build/install-git.sh ${GITLAB_BUILD_DIR}/
+RUN bash ${GITLAB_BUILD_DIR}/install-git.sh
+
+# install ruby from source
+COPY assets/build/install-ruby.sh ${GITLAB_BUILD_DIR}/
+RUN bash ${GITLAB_BUILD_DIR}/install-ruby.sh
+
+# install node from package repo
+COPY assets/build/install-node.sh ${GITLAB_BUILD_DIR}/
+RUN bash ${GITLAB_BUILD_DIR}/install-node.sh
+
+# install gitlab
+COPY assets/build/install-gitlab.sh ${GITLAB_BUILD_DIR}/
+RUN bash ${GITLAB_BUILD_DIR}/install-gitlab.sh
+
+# purge build dependencies and cleanup yum
+RUN yum autoremove -y && \
+    rm -rf /var/cache/yum/*
 
 COPY assets/runtime/ ${GITLAB_RUNTIME_DIR}/
 COPY entrypoint.sh /sbin/entrypoint.sh
