@@ -299,7 +299,7 @@ gitlab_configure_monitoring() {
 
 gitlab_configure_gitlab_workhorse() {
   echo "Configuring gitlab::gitlab-workhorse..."
-  update_template /etc/supervisor/conf.d/gitlab-workhorse.conf \
+  update_template /etc/supervisord.d/gitlab-workhorse.conf \
     GITLAB_RELATIVE_URL_ROOT \
     GITLAB_WORKHORSE_TIMEOUT
 }
@@ -433,7 +433,7 @@ gitlab_configure_mailroom() {
 
   # enable/disable startup of mailroom
   echo "mail_room_enabled=${GITLAB_INCOMING_EMAIL_ENABLED}" >> /etc/default/gitlab
-  update_template /etc/supervisor/conf.d/mail_room.conf GITLAB_INCOMING_EMAIL_ENABLED
+  update_template /etc/supervisord.d/mail_room.conf GITLAB_INCOMING_EMAIL_ENABLED
 }
 
 gitlab_configure_ldap() {
@@ -743,7 +743,7 @@ gitlab_configure_sidekiq() {
   echo "Configuring gitlab::sidekiq..."
 
   # configure sidekiq
-  update_template /etc/supervisor/conf.d/sidekiq.conf \
+  update_template /etc/supervisord.d/sidekiq.conf \
     SIDEKIQ_CONCURRENCY \
     SIDEKIQ_SHUTDOWN_TIMEOUT
 
@@ -1504,7 +1504,7 @@ configure_gitlab_shell() {
 configure_gitlab_pages() {
   if [[ ${GITLAB_PAGES_ENABLED} == true ]]; then
   echo "Configuring gitlab-pages..."
-cat > /etc/supervisor/conf.d/gitlab-pages.conf <<EOF
+cat > /etc/supervisord.d/gitlab-pages.conf <<EOF
 [program:gitlab-pages]
 priority=20
 directory=${GITLAB_INSTALL_DIR}
@@ -1516,21 +1516,21 @@ command=/usr/local/bin/gitlab-pages
 EOF
 
 if [[ -n ${GITLAB_PAGES_EXTERNAL_HTTP} ]]; then
-cat >> /etc/supervisor/conf.d/gitlab-pages.conf <<EOF
+cat >> /etc/supervisord.d/gitlab-pages.conf <<EOF
   -listen-http ${GITLAB_PAGES_EXTERNAL_HTTP}
 EOF
 fi
 
 
 if [[ -n ${GITLAB_PAGES_EXTERNAL_HTTPS} ]]; then
-cat >> /etc/supervisor/conf.d/gitlab-pages.conf <<EOF
+cat >> /etc/supervisord.d/gitlab-pages.conf <<EOF
   -listen-https ${GITLAB_PAGES_EXTERNAL_HTTPS}
   -root-cert ${SSL_PAGES_CERT_PATH}
   -root-key ${SSL_PAGES_KEY_PATH}
 EOF
 fi
 
-cat >> /etc/supervisor/conf.d/gitlab-pages.conf <<EOF
+cat >> /etc/supervisord.d/gitlab-pages.conf <<EOF
 user=git
 autostart=true
 autorestart=true

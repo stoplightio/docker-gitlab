@@ -237,7 +237,7 @@ ${GITLAB_LOG_DIR}/nginx/*.log {
 EOF
 
 # configure supervisord to start unicorn
-cat > /etc/supervisor/conf.d/unicorn.conf <<EOF
+cat > /etc/supervisord.d/unicorn.conf <<EOF
 [program:unicorn]
 priority=10
 directory=${GITLAB_INSTALL_DIR}
@@ -252,7 +252,7 @@ stderr_logfile=${GITLAB_LOG_DIR}/supervisor/%(program_name)s.log
 EOF
 
 # configure supervisord to start sidekiq
-cat > /etc/supervisor/conf.d/sidekiq.conf <<EOF
+cat > /etc/supervisord.d/sidekiq.conf <<EOF
 [program:sidekiq]
 priority=10
 directory=${GITLAB_INSTALL_DIR}
@@ -271,7 +271,7 @@ stderr_logfile=${GITLAB_LOG_DIR}/supervisor/%(program_name)s.log
 EOF
 
 # configure supervisord to start gitlab-workhorse
-cat > /etc/supervisor/conf.d/gitlab-workhorse.conf <<EOF
+cat > /etc/supervisord.d/gitlab-workhorse.conf <<EOF
 [program:gitlab-workhorse]
 priority=20
 directory=${GITLAB_INSTALL_DIR}
@@ -292,7 +292,7 @@ stderr_logfile=${GITLAB_INSTALL_DIR}/log/%(program_name)s.log
 EOF
 
 # configure supervisord to start gitaly
-cat > /etc/supervisor/conf.d/gitaly.conf <<EOF
+cat > /etc/supervisord.d/gitaly.conf <<EOF
 [program:gitaly]
 priority=5
 directory=${GITLAB_GITALY_INSTALL_DIR}
@@ -306,7 +306,7 @@ stderr_logfile=${GITLAB_LOG_DIR}/supervisor/%(program_name)s.log
 EOF
 
 # configure supervisord to start mail_room
-cat > /etc/supervisor/conf.d/mail_room.conf <<EOF
+cat > /etc/supervisord.d/mail_room.conf <<EOF
 [program:mail_room]
 priority=20
 directory=${GITLAB_INSTALL_DIR}
@@ -320,7 +320,7 @@ stderr_logfile=${GITLAB_INSTALL_DIR}/log/%(program_name)s.log
 EOF
 
 # configure supervisord to start nginx
-cat > /etc/supervisor/conf.d/nginx.conf <<EOF
+cat > /etc/supervisord.d/nginx.conf <<EOF
 [program:nginx]
 priority=20
 directory=/tmp
@@ -333,7 +333,7 @@ stderr_logfile=${GITLAB_LOG_DIR}/supervisor/%(program_name)s.log
 EOF
 
 # configure supervisord to start crond
-cat > /etc/supervisor/conf.d/cron.conf <<EOF
+cat > /etc/supervisord.d/cron.conf <<EOF
 [program:cron]
 priority=20
 directory=/tmp
