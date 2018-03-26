@@ -63,6 +63,8 @@ RUN bash ${GITLAB_BUILD_DIR}/install-gitlab.sh
 RUN yum autoremove -y && \
     rm -rf /var/cache/yum/*
 
+RUN sed 's/supervisord.d\/\*.ini/supervisord.d\/\*.conf/' /etc/supervisord.conf
+
 COPY assets/runtime/ ${GITLAB_RUNTIME_DIR}/
 COPY entrypoint.sh /sbin/entrypoint.sh
 RUN chmod 755 /sbin/entrypoint.sh
