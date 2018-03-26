@@ -1359,12 +1359,12 @@ generate_ssh_host_keys() {
 
 initialize_system() {
   map_uidgid
-  initialize_logdir
-  initialize_datadir
+  # initialize_logdir
+  # initialize_datadir
   update_ca_certificates
   generate_ssh_host_keys
   install_configuration_templates
-  rm -rf /var/run/supervisor.sock
+  # rm -rf /var/run/supervisor.sock
 }
 
 install_configuration_templates() {

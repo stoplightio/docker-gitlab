@@ -45,7 +45,8 @@ RUN yum install -y \
     postgresql96 \
     re2-devel \
     nginx \
-    supervisor
+    supervisor \
+    redis
 
 # install git from source
 COPY assets/build/install-git.sh ${GITLAB_BUILD_DIR}/
@@ -62,8 +63,6 @@ RUN bash ${GITLAB_BUILD_DIR}/install-node.sh
 # install gitlab
 COPY assets/build/install-gitlab.sh ${GITLAB_BUILD_DIR}/
 RUN bash ${GITLAB_BUILD_DIR}/install-gitlab.sh
-
-RUN yum install redis -y
 
 # purge build dependencies and cleanup yum
 # RUN yum autoremove -y && \
