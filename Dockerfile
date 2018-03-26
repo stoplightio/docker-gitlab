@@ -63,9 +63,11 @@ RUN bash ${GITLAB_BUILD_DIR}/install-node.sh
 COPY assets/build/install-gitlab.sh ${GITLAB_BUILD_DIR}/
 RUN bash ${GITLAB_BUILD_DIR}/install-gitlab.sh
 
+RUN yum install redis -y
+
 # purge build dependencies and cleanup yum
-RUN yum autoremove -y && \
-    rm -rf /var/cache/yum/*
+# RUN yum autoremove -y && \
+#     rm -rf /var/cache/yum/*
 
 # update supervisor config
 RUN sed -i 's/supervisord.d\/\*.ini/supervisord.d\/\*.conf/' /etc/supervisord.conf
