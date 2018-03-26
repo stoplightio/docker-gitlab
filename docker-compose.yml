@@ -22,7 +22,7 @@ services:
 
   gitlab:
     restart: always
-    image: quay.io/stoplight/gitlab:lastest
+    image: quay.io/stoplight/gitlab:latest
     depends_on:
     - redis
     - postgresql
