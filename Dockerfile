@@ -63,7 +63,10 @@ RUN bash ${GITLAB_BUILD_DIR}/install-gitlab.sh
 RUN yum autoremove -y && \
     rm -rf /var/cache/yum/*
 
-RUN sed 's/supervisord.d\/\*.ini/supervisord.d\/\*.conf/' /etc/supervisord.conf
+# update supervisor config
+RUN sed -i 's/supervisord.d\/\*.ini/supervisord.d\/\*.conf/' /etc/supervisord.conf
+RUN sed -i 's/serverurl=unix.*/;serverurl=unix/' /etc/supervisord.conf
+RUN sed -i 's/\;serverurl=http:\/\/127.0.0.1:9001/serverurl=http:\/\/127.0.0.1:9001/' /etc/supervisord.conf
 
 COPY assets/runtime/ ${GITLAB_RUNTIME_DIR}/
 COPY entrypoint.sh /sbin/entrypoint.sh
