@@ -1,4 +1,6 @@
 #!/bin/bash
 
-# install node
-rpm -Uvh https://rpm.nodesource.com/pub_8.x/el/7/x86_64/nodejs-8.9.4-1nodesource.x86_64.rpm
+curl --silent --location https://rpm.nodesource.com/setup_8.x | bash -
+curl --silent --location https://dl.yarnpkg.com/rpm/yarn.repo | sudo tee /etc/yum.repos.d/yarn.repo
+
+yum install nodejs yarn -y

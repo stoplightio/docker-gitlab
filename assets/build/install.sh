@@ -133,10 +133,8 @@ exec_as_git cp ${GITLAB_INSTALL_DIR}/config/gitlab.yml.example ${GITLAB_INSTALL_
 exec_as_git cp ${GITLAB_INSTALL_DIR}/config/database.yml.mysql ${GITLAB_INSTALL_DIR}/config/database.yml
 
 # Installs nodejs packages required to compile webpack
-curl -o /tmp/install-yarn.sh https://yarnpkg.com/install.sh && chmod +x /tmp/install-yarn.sh
-exec_as_git /tmp/install-yarn.sh --version 1.3.2
-exec_as_git /home/git/.yarn/bin/yarn install --production --pure-lockfile
-exec_as_git /home/git/.yarn/bin/yarn add ajv@^4.0.0
+exec_as_git yarn install --production --pure-lockfile
+exec_as_git yarn add ajv@^4.0.0
 
 echo "Compiling assets. Please be patient, this could take a while..."
 exec_as_git bundle exec rake gitlab:assets:compile USE_DB=false SKIP_STORAGE_VALIDATION=true
