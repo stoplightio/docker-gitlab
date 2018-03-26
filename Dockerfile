@@ -41,7 +41,7 @@ RUN yum install -y \
     cmake \
     bzip2 \
     mysql-devel \
-    postgresql96-devel \
+    postgresql-devel \
     postgresql96 \
     re2-devel \
     nginx \
