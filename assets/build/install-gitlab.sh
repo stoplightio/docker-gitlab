@@ -176,7 +176,7 @@ chmod +x /etc/init.d/gitlab
 rm -rf /etc/nginx/sites-enabled/default
 
 # move supervisord.log file to ${GITLAB_LOG_DIR}/supervisor/
-sed -i "s|^[#]*logfile=.*|logfile=${GITLAB_LOG_DIR}/supervisor/supervisord.log ;|" /etc/supervisor/supervisord.conf
+sed -i "s|^[#]*logfile=.*|logfile=${GITLAB_LOG_DIR}/supervisor/supervisord.log ;|" /etc/supervisord.conf
 
 # move nginx logs to ${GITLAB_LOG_DIR}/nginx
 sed -i \
