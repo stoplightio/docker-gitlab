@@ -178,11 +178,19 @@ rm -rf /etc/nginx/sites-enabled/default
 # move supervisord.log file to ${GITLAB_LOG_DIR}/supervisor/
 sed -i "s|^[#]*logfile=.*|logfile=${GITLAB_LOG_DIR}/supervisor/supervisord.log ;|" /etc/supervisord.conf
 
-# move nginx logs to ${GITLAB_LOG_DIR}/nginx
-sed -i \
-  -e "s|access_log /var/log/nginx/access.log;|access_log ${GITLAB_LOG_DIR}/nginx/access.log;|" \
-  -e "s|error_log /var/log/nginx/error.log;|error_log ${GITLAB_LOG_DIR}/nginx/error.log;|" \
-  /etc/nginx/nginx.conf
+# override default nginx config
+cat << EOF >/etc/nginx/nginx.conf
+worker_processes 1;
+error_log /var/log/gitlab/nginx/error.log;
+pid /tmp/nginx.pid;
+
+# Load dynamic modules. See /usr/share/nginx/README.dynamic.
+include /usr/share/nginx/modules/*.conf;
+
+events {
+    worker_connections 1024;
+}
+EOF
 
 # configure supervisord log rotation
 cat > /etc/logrotate.d/supervisord <<EOF
@@ -333,14 +341,14 @@ stderr_logfile=${GITLAB_LOG_DIR}/supervisor/%(program_name)s.log
 EOF
 
 # configure supervisord to start crond
-cat > /etc/supervisord.d/cron.conf <<EOF
-[program:cron]
-priority=20
-directory=/tmp
-command=/usr/sbin/cron -f
-user=root
-autostart=true
-autorestart=true
-stdout_logfile=${GITLAB_LOG_DIR}/supervisor/%(program_name)s.log
-stderr_logfile=${GITLAB_LOG_DIR}/supervisor/%(program_name)s.log
-EOF
+# cat > /etc/supervisord.d/cron.conf <<EOF
+# [program:cron]
+# priority=20
+# directory=/tmp
+# command=/usr/sbin/cron -f
+# user=root
+# autostart=true
+# autorestart=true
+# stdout_logfile=${GITLAB_LOG_DIR}/supervisor/%(program_name)s.log
+# stderr_logfile=${GITLAB_LOG_DIR}/supervisor/%(program_name)s.log
+# EOF
