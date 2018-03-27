@@ -168,6 +168,9 @@ exec_as_git ln -sf ${GITLAB_DATA_DIR}/.secret ${GITLAB_INSTALL_DIR}/.secret
 rm -rf ${GITLAB_INSTALL_DIR}/builds
 rm -rf ${GITLAB_INSTALL_DIR}/shared
 
+chown -R ${GITLAB_USER}:${GITLAB_USER} ${GITLAB_LOG_DIR}
+chown -R ${GITLAB_USER}:${GITLAB_USER} ${GITLAB_HOME}
+
 # install gitlab bootscript, to silence gitlab:check warnings
 cp ${GITLAB_INSTALL_DIR}/lib/support/init.d/gitlab /etc/init.d/gitlab
 chmod +x /etc/init.d/gitlab
