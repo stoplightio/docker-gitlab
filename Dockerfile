@@ -47,11 +47,15 @@ RUN yum install -y \
 
 # install local packages
 COPY assets/packages /tmp/
-RUN yum localinstall /tmp/packages/*rpm -y
+RUN yum localinstall /tmp/*rpm -y
 
 # configure supervisord
 COPY assets/build/configure-supervisor.sh ${GITLAB_BUILD_DIR}/
 RUN bash ${GITLAB_BUILD_DIR}/configure-supervisor.sh
+
+# configure nginx
+COPY assets/build/configure-nginx.sh ${GITLAB_BUILD_DIR}/
+RUN bash ${GITLAB_BUILD_DIR}/configure-nginx.sh
 
 # create gitlab user
 RUN adduser --shell /bin/false ${GITLAB_USER} && \
@@ -59,7 +63,9 @@ RUN adduser --shell /bin/false ${GITLAB_USER} && \
 
 # unpack gitlab
 COPY assets/gitlab-10.3.4_full.tar.gz /tmp/
-RUN tar -xf /tmp/gitlab-10.3.4_full.tar.gz -C /home/git/
+RUN tar -xf /tmp/gitlab-10.3.4_full.tar.gz -C /home/git/ && \
+    cp -f /home/git/gitaly/gitaly /usr/local/bin/ && \
+    cp -f /home/git/gitlab-pages/gitlab-pages /usr/local/bin/
 
 # purge build dependencies and cleanup yum
 RUN yum autoremove -y && \

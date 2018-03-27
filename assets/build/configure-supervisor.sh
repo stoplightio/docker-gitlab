@@ -83,22 +83,6 @@ stdout_logfile_maxbytes=0
 stderr_logfile_maxbytes=0
 EOF
 
-# configure supervisord to start mail_room
-cat > /etc/supervisord.d/mail_room.conf <<EOF
-[program:mail_room]
-priority=20
-directory=${GITLAB_INSTALL_DIR}
-environment=HOME=${GITLAB_HOME}
-command=bundle exec mail_room -c ${GITLAB_INSTALL_DIR}/config/mail_room.yml
-user=git
-autostart={{GITLAB_INCOMING_EMAIL_ENABLED}}
-autorestart=true
-stdout_logfile=/dev/stdout
-stderr_logfile=/dev/stdout
-stdout_logfile_maxbytes=0
-stderr_logfile_maxbytes=0
-EOF
-
 # configure supervisord to start nginx
 cat > /etc/supervisord.d/nginx.conf <<EOF
 [program:nginx]

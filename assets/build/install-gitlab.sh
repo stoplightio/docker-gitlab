@@ -113,7 +113,7 @@ if [[ -d ${GEM_CACHE_DIR} ]]; then
   chown -R ${GITLAB_USER}: ${GITLAB_INSTALL_DIR}/vendor/cache
 fi
 
-exec_as_git bundle install -j$(nproc) --deployment --without development test aws
+exec_as_git bundle install --standalone -j$(nproc) --deployment --without development test aws
 
 # make sure everything in ${GITLAB_HOME} is owned by ${GITLAB_USER} user
 chown -R ${GITLAB_USER}: ${GITLAB_HOME}
@@ -170,19 +170,6 @@ chmod +x /etc/init.d/gitlab
 
 # move supervisord.log file to ${GITLAB_LOG_DIR}/supervisor/
 sed -i "s|^[#]*logfile=.*|logfile=${GITLAB_LOG_DIR}/supervisor/supervisord.log ;|" /etc/supervisord.conf
-
-# override default nginx config
-cat << EOF >/etc/nginx/nginx.conf
-worker_processes 1;
-error_log /var/log/gitlab/nginx/error.log;
-pid /tmp/nginx.pid;
-
-include /usr/share/nginx/modules/*.conf;
-
-events {
-    worker_connections 1024;
-}
-EOF
 
 # configure supervisord log rotation
 cat > /etc/logrotate.d/supervisord <<EOF
