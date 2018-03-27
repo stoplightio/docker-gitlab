@@ -168,7 +168,7 @@ exec_as_git ln -sf ${GITLAB_DATA_DIR}/.secret ${GITLAB_INSTALL_DIR}/.secret
 rm -rf ${GITLAB_INSTALL_DIR}/builds
 rm -rf ${GITLAB_INSTALL_DIR}/shared
 
-chown -R ${GITLAB_USER}:${GITLAB_USER} ${GITLAB_LOG_DIR}
+mkdir -p ${GITLAB_LOG_DIR}/{supervisor,nginx,gitlab,gitaly} && chown -R ${GITLAB_USER}:${GITLAB_USER}
 chown -R ${GITLAB_USER}:${GITLAB_USER} ${GITLAB_HOME}
 
 # install gitlab bootscript, to silence gitlab:check warnings
