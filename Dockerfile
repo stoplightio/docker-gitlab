@@ -49,6 +49,8 @@ RUN yum install -y \
 COPY assets/packages /tmp/
 RUN yum localinstall /tmp/*rpm -y
 
+RUN gem install bundler --no-doc
+
 # configure supervisord
 COPY assets/build/configure-supervisor.sh ${GITLAB_BUILD_DIR}/
 RUN bash ${GITLAB_BUILD_DIR}/configure-supervisor.sh
