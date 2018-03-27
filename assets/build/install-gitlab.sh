@@ -43,6 +43,10 @@ GITLAB_SHELL_VERSION=${GITLAB_SHELL_VERSION:-$(cat ${GITLAB_INSTALL_DIR}/GITLAB_
 GITLAB_WORKHORSE_VERSION=${GITLAB_WORKHOUSE_VERSION:-$(cat ${GITLAB_INSTALL_DIR}/GITLAB_WORKHORSE_VERSION)}
 GITLAB_PAGES_VERSION=${GITLAB_PAGES_VERSION:-$(cat ${GITLAB_INSTALL_DIR}/GITLAB_PAGES_VERSION)}
 
+echo "Downloading Go ${GOLANG_VERSION}..."
+wget -cnv https://storage.googleapis.com/golang/go${GOLANG_VERSION}.linux-amd64.tar.gz -P ${GITLAB_BUILD_DIR}/
+tar -xf ${GITLAB_BUILD_DIR}/go${GOLANG_VERSION}.linux-amd64.tar.gz -C /tmp/
+
 # install gitlab-shell
 echo "Downloading gitlab-shell v.${GITLAB_SHELL_VERSION}..."
 mkdir -p ${GITLAB_SHELL_INSTALL_DIR}
@@ -55,7 +59,7 @@ cd ${GITLAB_SHELL_INSTALL_DIR}
 exec_as_git cp -a ${GITLAB_SHELL_INSTALL_DIR}/config.yml.example ${GITLAB_SHELL_INSTALL_DIR}/config.yml
 if [[ -x ./bin/compile ]]; then
   echo "Compiling gitlab-shell golang executables..."
-  exec_as_git ./bin/compile
+  exec_as_git PATH=/tmp/go/bin:$PATH GOROOT=/tmp/go ./bin/compile
 fi
 exec_as_git ./bin/install
 
@@ -69,7 +73,7 @@ chown -R ${GITLAB_USER}: ${GITLAB_WORKHORSE_INSTALL_DIR}
 
 # install gitlab-workhorse
 cd ${GITLAB_WORKHORSE_INSTALL_DIR}
-make install
+PATH=/tmp/go/bin:$PATH GOROOT=/tmp/go make install
 
 # download pages
 echo "Downloading gitlab-pages v.${GITLAB_PAGES_VERSION}..."
@@ -78,7 +82,7 @@ chown -R ${GITLAB_USER}: ${GITLAB_PAGES_INSTALL_DIR}
 
 # install gitlab-pages
 cd ${GITLAB_PAGES_INSTALL_DIR}
-make
+PATH=/tmp/go/bin:$PATH GOROOT=/tmp/go make
 cp -f gitlab-pages /usr/local/bin/
 
 # download gitaly
@@ -92,6 +96,8 @@ exec_as_git cp ${GITLAB_GITALY_INSTALL_DIR}/config.toml.example ${GITLAB_GITALY_
 cd ${GITLAB_GITALY_INSTALL_DIR}
 ln -sf /tmp/go /usr/local/go
 PATH=/tmp/go/bin:$PATH make install && make clean
+
+rm -rf ${GITLAB_BUILD_DIR}/go${GOLANG_VERSION}.linux-amd64.tar.gz /tmp/go
 
 # remove HSTS config from the default headers, we configure it in nginx
 exec_as_git sed -i "/headers\['Strict-Transport-Security'\]/d" ${GITLAB_INSTALL_DIR}/app/controllers/application_controller.rb

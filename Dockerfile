@@ -45,12 +45,6 @@ RUN yum install -y \
     supervisor \
     redis
 
-# install go
-ENV GO_PKG_PATH=/tmp/go${GOLANG_VERSION}.linux-amd64.tar.gz
-RUN mkdir -p ${GITLAB_BUILD_DIR} && \
-    curl -o ${GO_PKG_PATH} https://storage.googleapis.com/golang/go${GOLANG_VERSION}.linux-amd64.tar.gz && \
-    tar -xf ${GO_PKG_PATH} -C /
-
 # install git from source
 COPY assets/build/install-git.sh ${GITLAB_BUILD_DIR}/
 RUN bash ${GITLAB_BUILD_DIR}/install-git.sh
