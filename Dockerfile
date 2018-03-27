@@ -43,7 +43,8 @@ RUN yum install -y \
     re2-devel \
     nginx \
     supervisor \
-    redis
+    redis \
+    which
 
 # install local packages
 COPY assets/packages /tmp/
