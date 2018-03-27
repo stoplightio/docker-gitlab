@@ -44,7 +44,8 @@ RUN yum install -y \
     nginx \
     supervisor \
     redis \
-    which
+    which \
+    hostname
 
 # install local packages
 COPY assets/packages /tmp/

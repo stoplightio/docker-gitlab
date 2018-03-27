@@ -5,6 +5,8 @@ set -ex
 sed -i 's/supervisord.d\/\*.ini/supervisord.d\/\*.conf/' /etc/supervisord.conf
 sed -i 's/serverurl=unix.*/;serverurl=unix/' /etc/supervisord.conf
 sed -i 's/\;serverurl=http:\/\/127.0.0.1:9001/serverurl=http:\/\/127.0.0.1:9001/' /etc/supervisord.conf
+sed -i 's/logfile=.\*/logfile=\/dev\/stdout/' /etc/supervisord.conf
+sed -i 's/logfile_maxbytes=.\*/logfile_maxbytes=0/' /etc/supervisord.conf
 
 # configure supervisord to start unicorn
 cat > /etc/supervisord.d/unicorn.conf <<EOF
