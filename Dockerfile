@@ -45,25 +45,21 @@ RUN yum install -y \
     supervisor \
     redis
 
-# install git from source
-COPY assets/build/install-git.sh ${GITLAB_BUILD_DIR}/
-RUN bash ${GITLAB_BUILD_DIR}/install-git.sh
-
-# install ruby from source
-COPY assets/build/install-ruby.sh ${GITLAB_BUILD_DIR}/
-RUN bash ${GITLAB_BUILD_DIR}/install-ruby.sh
-
-# install node from package repo
-COPY assets/build/install-node.sh ${GITLAB_BUILD_DIR}/
-RUN bash ${GITLAB_BUILD_DIR}/install-node.sh
-
-# install gitlab
-COPY assets/build/install-gitlab.sh ${GITLAB_BUILD_DIR}/
-RUN bash ${GITLAB_BUILD_DIR}/install-gitlab.sh
+# install local packages
+COPY assets/packages /tmp/
+RUN yum localinstall /tmp/packages/*rpm -y
 
 # configure supervisord
 COPY assets/build/configure-supervisor.sh ${GITLAB_BUILD_DIR}/
 RUN bash ${GITLAB_BUILD_DIR}/configure-supervisor.sh
+
+# create gitlab user
+RUN adduser --shell /bin/false ${GITLAB_USER} && \
+    passwd -d ${GITLAB_USER}
+
+# unpack gitlab
+COPY assets/gitlab-10.3.4_full.tar.gz /tmp/
+RUN tar -xf /tmp/gitlab-10.3.4_full.tar.gz -C /home/git/
 
 # purge build dependencies and cleanup yum
 RUN yum autoremove -y && \
