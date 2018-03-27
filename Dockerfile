@@ -65,7 +65,7 @@ RUN adduser --shell /bin/false ${GITLAB_USER} && \
     passwd -d ${GITLAB_USER} && \
     sudo -HEu ${GITLAB_USER} git config --global core.autocrlf input && \
     sudo -HEu ${GITLAB_USER} git config --global gc.auto 0 && \
-    sudo -HEu ${GITLAB_USER} config --global repack.writeBitmaps true
+    sudo -HEu ${GITLAB_USER} git config --global repack.writeBitmaps true
 
 # unpack gitlab
 COPY assets/gitlab-10.3.4_full.tar.gz /tmp/
