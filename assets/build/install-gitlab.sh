@@ -112,6 +112,9 @@ exec_as_git bundle install -j$(nproc) --deployment --without development test aw
 # make sure everything in ${GITLAB_HOME} is owned by ${GITLAB_USER} user
 chown -R ${GITLAB_USER}: ${GITLAB_HOME}
 
+# setup log directories and make sure they are owned by git
+mkdir -p ${GITLAB_LOG_DIR}/{supervisor,nginx,gitlab,gitaly} && chown -R ${GITLAB_USER}:${GITLAB_USER} ${GITLAB_LOG_DIR}
+
 # gitlab.yml and database.yml are required for `assets:precompile`
 exec_as_git cp ${GITLAB_INSTALL_DIR}/config/resque.yml.example ${GITLAB_INSTALL_DIR}/config/resque.yml
 exec_as_git cp ${GITLAB_INSTALL_DIR}/config/gitlab.yml.example ${GITLAB_INSTALL_DIR}/config/gitlab.yml
@@ -151,9 +154,6 @@ exec_as_git ln -sf ${GITLAB_DATA_DIR}/.secret ${GITLAB_INSTALL_DIR}/.secret
 # WORKAROUND for https://github.com/sameersbn/docker-gitlab/issues/509
 rm -rf ${GITLAB_INSTALL_DIR}/builds
 rm -rf ${GITLAB_INSTALL_DIR}/shared
-
-mkdir -p ${GITLAB_LOG_DIR}/{supervisor,nginx,gitlab,gitaly} && chown -R ${GITLAB_USER}:${GITLAB_USER}
-chown -R ${GITLAB_USER}:${GITLAB_USER} ${GITLAB_HOME}
 
 # install gitlab bootscript, to silence gitlab:check warnings
 cp ${GITLAB_INSTALL_DIR}/lib/support/init.d/gitlab /etc/init.d/gitlab
