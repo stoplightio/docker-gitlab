@@ -60,15 +60,22 @@ RUN bash ${GITLAB_BUILD_DIR}/configure-supervisor.sh
 COPY assets/build/configure-nginx.sh ${GITLAB_BUILD_DIR}/
 RUN bash ${GITLAB_BUILD_DIR}/configure-nginx.sh
 
-# create gitlab user
+# create gitlab user and configure git
 RUN adduser --shell /bin/false ${GITLAB_USER} && \
-    passwd -d ${GITLAB_USER}
+    passwd -d ${GITLAB_USER} && \
+    sudo -HEu ${GITLAB_USER} git config --global core.autocrlf input && \
+    sudo -HEu ${GITLAB_USER} git config --global gc.auto 0 && \
+    sudo -HEu ${GITLAB_USER} config --global repack.writeBitmaps true
 
 # unpack gitlab
 COPY assets/gitlab-10.3.4_full.tar.gz /tmp/
 RUN tar -xf /tmp/gitlab-10.3.4_full.tar.gz -C /home/git/ && \
     cp -f /home/git/gitaly/gitaly /usr/local/bin/ && \
     cp -f /home/git/gitlab-pages/gitlab-pages /usr/local/bin/
+
+# build gem extensions
+WORKDIR ${GITLAB_INSTALL_DIR}
+RUN bundle install --local --without development test aws
 
 # purge build dependencies and cleanup yum
 RUN yum autoremove -y && \
@@ -78,9 +85,8 @@ COPY assets/runtime/ ${GITLAB_RUNTIME_DIR}/
 COPY entrypoint.sh /sbin/entrypoint.sh
 RUN chmod 755 /sbin/entrypoint.sh
 
-EXPOSE 22/tcp 80/tcp 443/tcp
+EXPOSE 80/tcp 443/tcp
+VOLUME ["${GITLAB_DATA_DIR}"]
 
-VOLUME ["${GITLAB_DATA_DIR}", "${GITLAB_LOG_DIR}"]
-WORKDIR ${GITLAB_INSTALL_DIR}
-ENTRYPOINT ["/sbin/entrypoint.sh"]
-CMD ["app:start"]
+USER git
+CMD ["exec","/usr/bin/supervisord","-nc","/etc/supervisord.conf"]

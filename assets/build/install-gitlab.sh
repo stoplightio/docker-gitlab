@@ -118,9 +118,6 @@ exec_as_git bundle install --standalone -j$(nproc) --deployment --without develo
 # make sure everything in ${GITLAB_HOME} is owned by ${GITLAB_USER} user
 chown -R ${GITLAB_USER}: ${GITLAB_HOME}
 
-# setup log directories and make sure they are owned by git
-mkdir -p ${GITLAB_LOG_DIR}/{supervisor,nginx,gitlab,gitaly} && chown -R ${GITLAB_USER}:${GITLAB_USER} ${GITLAB_LOG_DIR}
-
 # gitlab.yml and database.yml are required for `assets:precompile`
 exec_as_git cp ${GITLAB_INSTALL_DIR}/config/resque.yml.example ${GITLAB_INSTALL_DIR}/config/resque.yml
 exec_as_git cp ${GITLAB_INSTALL_DIR}/config/gitlab.yml.example ${GITLAB_INSTALL_DIR}/config/gitlab.yml
@@ -169,7 +166,7 @@ chmod +x /etc/init.d/gitlab
 # rm -rf /etc/nginx/sites-enabled/default
 
 # move supervisord.log file to ${GITLAB_LOG_DIR}/supervisor/
-sed -i "s|^[#]*logfile=.*|logfile=${GITLAB_LOG_DIR}/supervisor/supervisord.log ;|" /etc/supervisord.conf
+# sed -i "s|^[#]*logfile=.*|logfile=${GITLAB_LOG_DIR}/supervisor/supervisord.log ;|" /etc/supervisord.conf
 
 # configure supervisord log rotation
 cat > /etc/logrotate.d/supervisord <<EOF
