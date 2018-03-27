@@ -2,9 +2,9 @@
 set -ex
 
 # update supervisor config
-RUN sed -i 's/supervisord.d\/\*.ini/supervisord.d\/\*.conf/' /etc/supervisord.conf
-RUN sed -i 's/serverurl=unix.*/;serverurl=unix/' /etc/supervisord.conf
-RUN sed -i 's/\;serverurl=http:\/\/127.0.0.1:9001/serverurl=http:\/\/127.0.0.1:9001/' /etc/supervisord.conf
+sed -i 's/supervisord.d\/\*.ini/supervisord.d\/\*.conf/' /etc/supervisord.conf
+sed -i 's/serverurl=unix.*/;serverurl=unix/' /etc/supervisord.conf
+sed -i 's/\;serverurl=http:\/\/127.0.0.1:9001/serverurl=http:\/\/127.0.0.1:9001/' /etc/supervisord.conf
 
 # configure supervisord to start unicorn
 cat > /etc/supervisord.d/unicorn.conf <<EOF
@@ -17,8 +17,10 @@ user=git
 autostart=true
 autorestart=true
 stopsignal=QUIT
-stdout_logfile=${GITLAB_LOG_DIR}/supervisor/%(program_name)s.log
-stderr_logfile=${GITLAB_LOG_DIR}/supervisor/%(program_name)s.log
+stdout_logfile=/dev/stdout
+stderr_logfile=/dev/stdout
+stdout_logfile_maxbytes=0
+stderr_logfile_maxbytes=0
 EOF
 
 # configure supervisord to start sidekiq
@@ -36,8 +38,10 @@ command=bundle exec sidekiq -c {{SIDEKIQ_CONCURRENCY}}
 user=git
 autostart=true
 autorestart=true
-stdout_logfile=${GITLAB_LOG_DIR}/supervisor/%(program_name)s.log
-stderr_logfile=${GITLAB_LOG_DIR}/supervisor/%(program_name)s.log
+stdout_logfile=/dev/stdout
+stderr_logfile=/dev/stdout
+stdout_logfile_maxbytes=0
+stderr_logfile_maxbytes=0
 EOF
 
 # configure supervisord to start gitlab-workhorse
@@ -57,8 +61,10 @@ command=/usr/local/bin/gitlab-workhorse
 user=git
 autostart=true
 autorestart=true
-stdout_logfile=${GITLAB_INSTALL_DIR}/log/%(program_name)s.log
-stderr_logfile=${GITLAB_INSTALL_DIR}/log/%(program_name)s.log
+stdout_logfile=/dev/stdout
+stderr_logfile=/dev/stdout
+stdout_logfile_maxbytes=0
+stderr_logfile_maxbytes=0
 EOF
 
 # configure supervisord to start gitaly
@@ -71,8 +77,10 @@ command=/usr/local/bin/gitaly ${GITLAB_GITALY_INSTALL_DIR}/config.toml
 user=git
 autostart=true
 autorestart=true
-stdout_logfile=${GITLAB_LOG_DIR}/supervisor/%(program_name)s.log
-stderr_logfile=${GITLAB_LOG_DIR}/supervisor/%(program_name)s.log
+stdout_logfile=/dev/stdout
+stderr_logfile=/dev/stdout
+stdout_logfile_maxbytes=0
+stderr_logfile_maxbytes=0
 EOF
 
 # configure supervisord to start mail_room
@@ -85,8 +93,10 @@ command=bundle exec mail_room -c ${GITLAB_INSTALL_DIR}/config/mail_room.yml
 user=git
 autostart={{GITLAB_INCOMING_EMAIL_ENABLED}}
 autorestart=true
-stdout_logfile=${GITLAB_INSTALL_DIR}/log/%(program_name)s.log
-stderr_logfile=${GITLAB_INSTALL_DIR}/log/%(program_name)s.log
+stdout_logfile=/dev/stdout
+stderr_logfile=/dev/stdout
+stdout_logfile_maxbytes=0
+stderr_logfile_maxbytes=0
 EOF
 
 # configure supervisord to start nginx
@@ -98,6 +108,8 @@ command=/usr/sbin/nginx -g "daemon off;"
 user=git
 autostart=true
 autorestart=true
-stdout_logfile=${GITLAB_LOG_DIR}/supervisor/%(program_name)s.log
-stderr_logfile=${GITLAB_LOG_DIR}/supervisor/%(program_name)s.log
+stdout_logfile=/dev/stdout
+stderr_logfile=/dev/stdout
+stdout_logfile_maxbytes=0
+stderr_logfile_maxbytes=0
 EOF
