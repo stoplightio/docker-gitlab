@@ -46,9 +46,8 @@ RUN yum install -y \
     redis
 
 # install go
-ENV GO_PKG_PATH=${GITLAB_BUILD_DIR}/go${GOLANG_VERSION}.linux-amd64.tar.gz
+ENV GO_PKG_PATH=/tmp/go${GOLANG_VERSION}.linux-amd64.tar.gz
 RUN mkdir -p ${GITLAB_BUILD_DIR} && \
-    chown -R ${GITLAB_USER}: ${GITLAB_BUILD_DIR} && \
     curl -o ${GO_PKG_PATH} https://storage.googleapis.com/golang/go${GOLANG_VERSION}.linux-amd64.tar.gz && \
     tar -xf ${GO_PKG_PATH} -C /
 
