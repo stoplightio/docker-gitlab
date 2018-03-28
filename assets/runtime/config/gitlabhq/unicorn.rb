@@ -39,7 +39,7 @@ working_directory "{{GITLAB_INSTALL_DIR}}" # available in 0.94.0+
 # If you are load-balancing multiple Unicorn masters, lower the backlog
 # setting to e.g. 64 for faster failover.
 listen "{{GITLAB_INSTALL_DIR}}/tmp/sockets/gitlab.socket", :backlog => 1024
-listen "127.0.0.1:9000", :tcp_nopush => true
+listen "127.0.0.1:8081", :tcp_nopush => true
 
 # nuke workers after 30 seconds instead of 60 seconds (the default)
 #
@@ -64,8 +64,8 @@ pid "{{GITLAB_INSTALL_DIR}}/tmp/pids/unicorn.pid"
 # By default, the Unicorn logger will write to stderr.
 # Additionally, some applications/frameworks log to stderr or stdout,
 # so prevent them from going to /dev/null when daemonized here:
-stderr_path "{{GITLAB_INSTALL_DIR}}/log/unicorn.stderr.log"
-stdout_path "{{GITLAB_INSTALL_DIR}}/log/unicorn.stdout.log"
+stderr_path "/dev/stderr"
+stdout_path "/dev/stdout"
 
 # combine Ruby 2.0.0dev or REE with "preload_app true" for memory savings
 # http://rubyenterpriseedition.com/faq.html#adapt_apps_for_cow

@@ -80,10 +80,9 @@ priority=20
 directory=${GITLAB_INSTALL_DIR}
 environment=HOME=${GITLAB_HOME}
 command=/usr/local/bin/gitlab-workhorse
-  -listenUmask 0
-  -listenNetwork tcp
-  -listenAddr ":8181"
-  -authBackend http://127.0.0.1:9000{{GITLAB_RELATIVE_URL_ROOT}}
+  -listenUmask 0700
+  -listenNetwork unix
+  -listenAddr "${GITLAB_INSTALL_DIR}/tmp/sockets/gitlab-workhorse.socket"
   -authSocket ${GITLAB_INSTALL_DIR}/tmp/sockets/gitlab.socket
   -documentRoot ${GITLAB_INSTALL_DIR}/public
   -proxyHeadersTimeout {{GITLAB_WORKHORSE_TIMEOUT}}
