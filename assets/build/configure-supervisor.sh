@@ -116,8 +116,8 @@ EOF
 cat > ${SUPERVISOR_CONF_DIR}/nginx.conf <<EOF
 [program:nginx]
 priority=20
-directory=/tmp
-command=/usr/sbin/nginx -p ${NGINX_DIR} -g "daemon off;"
+directory=${NGINX_DIR}
+command=/usr/sbin/nginx -p ${NGINX_DIR} -g "daemon off;" -c nginx.conf
 user=git
 autostart=true
 autorestart=true
