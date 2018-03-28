@@ -22,7 +22,7 @@ ENV GITLAB_INSTALL_DIR="${GITLAB_HOME}/gitlab" \
     GITLAB_DATA_DIR="${GITLAB_HOME}/data" \
     GITLAB_BUILD_DIR="${GITLAB_CACHE_DIR}/build" \
     GITLAB_RUNTIME_DIR="${GITLAB_CACHE_DIR}/runtime" \
-    SUPERVISOR_DIR="${GITLAB_HOME_DIR}/supervisord" \
+    SUPERVISOR_DIR="${GITLAB_HOME}/supervisord" \
     SUPERVISOR_CONF="${SUPERVISOR_CONF}/supervisord.conf"
 
 # enable epel repository
