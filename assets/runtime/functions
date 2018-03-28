@@ -1471,7 +1471,7 @@ configure_gitlab() {
   gitlab_configure_mattermost
   gitlab_configure_project_features
   gitlab_configure_mail_delivery
-  gitlab_configure_mailroom
+  # gitlab_configure_mailroom
   gitlab_configure_oauth
   gitlab_configure_ldap
   gitlab_configure_gravatar
