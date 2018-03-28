@@ -87,6 +87,7 @@ WORKDIR ${GITLAB_SHELL_INSTALL_DIR}
 RUN bundle install --local
 
 WORKDIR ${GITLAB_HOME}
+RUN chown -R git: .
 # purge build dependencies and cleanup yum
 RUN yum autoremove -y && \
     rm -rf /var/cache/yum/*
