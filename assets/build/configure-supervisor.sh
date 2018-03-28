@@ -48,7 +48,7 @@ autostart=true
 autorestart=true
 stopsignal=QUIT
 stdout_logfile=/dev/stdout
-stderr_logfile=/dev/stdout
+stderr_logfile=/dev/stderr
 stdout_logfile_maxbytes=0
 stderr_logfile_maxbytes=0
 EOF
@@ -68,7 +68,7 @@ user=git
 autostart=true
 autorestart=true
 stdout_logfile=/dev/stdout
-stderr_logfile=/dev/stdout
+stderr_logfile=/dev/stderr
 stdout_logfile_maxbytes=0
 stderr_logfile_maxbytes=0
 EOF
@@ -80,7 +80,7 @@ priority=20
 directory=${GITLAB_INSTALL_DIR}
 environment=HOME=${GITLAB_HOME}
 command=/usr/local/bin/gitlab-workhorse
-  -listenUmask 0700
+  -listenUmask 700
   -listenNetwork unix
   -listenAddr "${GITLAB_INSTALL_DIR}/tmp/sockets/gitlab-workhorse.socket"
   -authSocket ${GITLAB_INSTALL_DIR}/tmp/sockets/gitlab.socket
@@ -90,7 +90,7 @@ user=git
 autostart=true
 autorestart=true
 stdout_logfile=/dev/stdout
-stderr_logfile=/dev/stdout
+stderr_logfile=/dev/stderr
 stdout_logfile_maxbytes=0
 stderr_logfile_maxbytes=0
 EOF
@@ -106,7 +106,7 @@ user=git
 autostart=true
 autorestart=true
 stdout_logfile=/dev/stdout
-stderr_logfile=/dev/stdout
+stderr_logfile=/dev/stderr
 stdout_logfile_maxbytes=0
 stderr_logfile_maxbytes=0
 EOF
@@ -121,7 +121,7 @@ user=git
 autostart=true
 autorestart=true
 stdout_logfile=/dev/stdout
-stderr_logfile=/dev/stdout
+stderr_logfile=/dev/stderr
 stdout_logfile_maxbytes=0
 stderr_logfile_maxbytes=0
 EOF
