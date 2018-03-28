@@ -12,7 +12,7 @@ error_log /dev/stderr;
 pid /tmp/nginx.pid;
 
 include /usr/share/nginx/modules/*.conf;
-include ${NGINX_CONF_DIR}/*.conf;
+include ${NGINX_CONF_DIR}/*;
 
 events {
     worker_connections 1024;
