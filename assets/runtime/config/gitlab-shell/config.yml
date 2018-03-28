@@ -13,7 +13,7 @@ user: git
 # only listen on a Unix domain socket. For Unix domain sockets use
 # "http+unix://<urlquoted-path-to-socket>", e.g.
 # "http+unix://%2Fpath%2Fto%2Fsocket"
-gitlab_url: "http://localhost:8080{{GITLAB_RELATIVE_URL_ROOT}}"
+gitlab_url: "http://localhost:9000{{GITLAB_RELATIVE_URL_ROOT}}"
 
 # See installation.md#using-https for additional HTTPS configuration details.
 http_settings:
@@ -37,7 +37,7 @@ custom_hooks_dir: "{{GITLAB_SHELL_INSTALL_DIR}}/hooks"
 
 # Log file.
 # Default is gitlab-shell.log in the root directory.
-log_file: "{{GITLAB_LOG_DIR}}/gitlab-shell/gitlab-shell.log"
+log_file: "/dev/stdout"
 
 # Log level. INFO by default
 log_level: INFO
