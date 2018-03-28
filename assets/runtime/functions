@@ -1360,7 +1360,7 @@ generate_ssh_host_keys() {
 initialize_system() {
   map_uidgid
   # initialize_logdir
-  # initialize_datadir
+  initialize_datadir
   update_ca_certificates
   generate_ssh_host_keys
   install_configuration_templates
@@ -1453,7 +1453,6 @@ configure_gitlab() {
     GITLAB_USERNAME_CHANGE \
     GITLAB_CREATE_GROUP 
 
-  initialize_datadir
   gitlab_configure_database
   gitlab_configure_redis
   gitlab_configure_secrets
