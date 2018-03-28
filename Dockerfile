@@ -52,21 +52,14 @@ RUN yum install -y \
     supervisor \
     redis \
     which \
-    hostname
+    hostname \
+    gettext
 
 # install local packages
 COPY assets/packages /tmp/
 RUN yum localinstall /tmp/*rpm -y
 
 RUN gem install bundler --no-doc
-
-# configure supervisord
-COPY assets/build/configure-supervisor.sh ${GITLAB_BUILD_DIR}/
-RUN bash ${GITLAB_BUILD_DIR}/configure-supervisor.sh
-
-# configure nginx
-COPY assets/build/configure-nginx.sh ${GITLAB_BUILD_DIR}/
-RUN bash ${GITLAB_BUILD_DIR}/configure-nginx.sh
 
 # create gitlab user and configure git
 RUN adduser --shell /bin/false ${GITLAB_USER} && \
@@ -91,10 +84,19 @@ RUN bundle install --local
 WORKDIR ${GITLAB_SHELL_INSTALL_DIR}
 RUN bundle install --local
 
-WORKDIR ${GITLAB_HOME}
 # purge build dependencies and cleanup yum
 RUN yum autoremove -y && \
     rm -rf /var/cache/yum/*
+
+# configure supervisord
+COPY assets/build/configure-supervisor.sh ${GITLAB_BUILD_DIR}/
+RUN bash ${GITLAB_BUILD_DIR}/configure-supervisor.sh
+
+# configure nginx
+COPY assets/build/configure-nginx.sh ${GITLAB_BUILD_DIR}/
+RUN bash ${GITLAB_BUILD_DIR}/configure-nginx.sh
+
+WORKDIR ${GITLAB_HOME}
 
 COPY assets/runtime/ ${GITLAB_RUNTIME_DIR}/
 COPY entrypoint.sh /sbin/entrypoint.sh
