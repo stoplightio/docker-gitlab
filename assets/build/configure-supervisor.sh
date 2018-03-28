@@ -126,3 +126,16 @@ stderr_logfile=/dev/stdout
 stdout_logfile_maxbytes=0
 stderr_logfile_maxbytes=0
 EOF
+
+# # configure supervisord to start crond
+# cat > /etc/supervisor/conf.d/cron.conf <<EOF
+# [program:cron]
+# priority=20
+# directory=/tmp
+# command=/usr/sbin/cron -f
+# user=root
+# stdout_logfile=/dev/stdout
+# stderr_logfile=/dev/stdout
+# stdout_logfile_maxbytes=0
+# stderr_logfile_maxbytes=0
+# EOF

@@ -7,127 +7,28 @@ GITLAB_WORKHORSE_URL=https://gitlab.com/gitlab-org/gitlab-workhorse.git
 GITLAB_PAGES_URL=https://gitlab.com/gitlab-org/gitlab-pages.git
 GITLAB_GITALY_URL=https://gitlab.com/gitlab-org/gitaly.git
 
-GEM_CACHE_DIR="${GITLAB_BUILD_DIR}/cache"
-
-## Execute a command as GITLAB_USER
-exec_as_git() {
-  if [[ $(whoami) == ${GITLAB_USER} ]]; then
-    $@
-  else
-    sudo -HEu ${GITLAB_USER} "$@"
-  fi
-}
-
-# remove the host keys generated during openssh-server installation
-rm -rf /etc/ssh/ssh_host_*_key /etc/ssh/ssh_host_*_key.pub
-
-# add ${GITLAB_USER} user
-adduser --shell /bin/false ${GITLAB_USER}
-passwd -d ${GITLAB_USER}
-
 # set PATH (fixes cron job PATH issues)
 cat >> ${GITLAB_HOME}/.profile <<EOF
 PATH=/usr/local/sbin:/usr/local/bin:\$PATH
 EOF
 
-# configure git for ${GITLAB_USER}
-exec_as_git git config --global core.autocrlf input
-exec_as_git git config --global gc.auto 0
-exec_as_git git config --global repack.writeBitmaps true
+git config --global core.autocrlf input
+git config --global gc.auto 0
+git config --global repack.writeBitmaps true
 
-# shallow clone gitlab-ce
-echo "Cloning gitlab-ce v.${GITLAB_VERSION}..."
-exec_as_git git clone -q -b stoplight/develop --depth 1 ${GITLAB_CLONE_URL} ${GITLAB_INSTALL_DIR}
-
-GITLAB_SHELL_VERSION=${GITLAB_SHELL_VERSION:-$(cat ${GITLAB_INSTALL_DIR}/GITLAB_SHELL_VERSION)}
-GITLAB_WORKHORSE_VERSION=${GITLAB_WORKHOUSE_VERSION:-$(cat ${GITLAB_INSTALL_DIR}/GITLAB_WORKHORSE_VERSION)}
-GITLAB_PAGES_VERSION=${GITLAB_PAGES_VERSION:-$(cat ${GITLAB_INSTALL_DIR}/GITLAB_PAGES_VERSION)}
-
-echo "Downloading Go ${GOLANG_VERSION}..."
-wget -cnv https://storage.googleapis.com/golang/go${GOLANG_VERSION}.linux-amd64.tar.gz -P ${GITLAB_BUILD_DIR}/
-tar -xf ${GITLAB_BUILD_DIR}/go${GOLANG_VERSION}.linux-amd64.tar.gz -C /tmp/
-
-# install gitlab-shell
-echo "Downloading gitlab-shell v.${GITLAB_SHELL_VERSION}..."
-mkdir -p ${GITLAB_SHELL_INSTALL_DIR}
-wget -cq ${GITLAB_SHELL_URL}?ref=v${GITLAB_SHELL_VERSION} -O ${GITLAB_BUILD_DIR}/gitlab-shell-${GITLAB_SHELL_VERSION}.tar.gz
-tar xf ${GITLAB_BUILD_DIR}/gitlab-shell-${GITLAB_SHELL_VERSION}.tar.gz --strip 1 -C ${GITLAB_SHELL_INSTALL_DIR}
-rm -rf ${GITLAB_BUILD_DIR}/gitlab-shell-${GITLAB_SHELL_VERSION}.tar.gz
-chown -R ${GITLAB_USER}: ${GITLAB_SHELL_INSTALL_DIR}
-
-cd ${GITLAB_SHELL_INSTALL_DIR}
-exec_as_git cp -a ${GITLAB_SHELL_INSTALL_DIR}/config.yml.example ${GITLAB_SHELL_INSTALL_DIR}/config.yml
-if [[ -x ./bin/compile ]]; then
-  echo "Compiling gitlab-shell golang executables..."
-  exec_as_git PATH=/tmp/go/bin:$PATH GOROOT=/tmp/go ./bin/compile
-fi
-exec_as_git ./bin/install
-
-# remove unused repositories directory created by gitlab-shell install
-exec_as_git rm -rf ${GITLAB_HOME}/repositories
-
-# download gitlab-workhorse
-echo "Cloning gitlab-workhorse v.${GITLAB_WORKHORSE_VERSION}..."
-exec_as_git git clone -q -b v${GITLAB_WORKHORSE_VERSION} --depth 1 ${GITLAB_WORKHORSE_URL} ${GITLAB_WORKHORSE_INSTALL_DIR}
-chown -R ${GITLAB_USER}: ${GITLAB_WORKHORSE_INSTALL_DIR}
-
-# install gitlab-workhorse
-cd ${GITLAB_WORKHORSE_INSTALL_DIR}
-PATH=/tmp/go/bin:$PATH GOROOT=/tmp/go make install
-
-# download pages
-echo "Downloading gitlab-pages v.${GITLAB_PAGES_VERSION}..."
-exec_as_git git clone -q -b v${GITLAB_PAGES_VERSION} --depth 1 ${GITLAB_PAGES_URL} ${GITLAB_PAGES_INSTALL_DIR}
-chown -R ${GITLAB_USER}: ${GITLAB_PAGES_INSTALL_DIR}
-
-# install gitlab-pages
-cd ${GITLAB_PAGES_INSTALL_DIR}
-PATH=/tmp/go/bin:$PATH GOROOT=/tmp/go make
-cp -f gitlab-pages /usr/local/bin/
-
-# download gitaly
-echo "Downloading gitaly v.${GITALY_SERVER_VERSION}..."
-exec_as_git git clone -q -b v${GITALY_SERVER_VERSION} --depth 1 ${GITLAB_GITALY_URL} ${GITLAB_GITALY_INSTALL_DIR}
-chown -R ${GITLAB_USER}: ${GITLAB_GITALY_INSTALL_DIR}
-# copy default config for gitaly
-exec_as_git cp ${GITLAB_GITALY_INSTALL_DIR}/config.toml.example ${GITLAB_GITALY_INSTALL_DIR}/config.toml
-
-# install gitaly
-cd ${GITLAB_GITALY_INSTALL_DIR}
-ln -sf /tmp/go /usr/local/go
-PATH=/tmp/go/bin:$PATH make install && make clean
-
-rm -rf ${GITLAB_BUILD_DIR}/go${GOLANG_VERSION}.linux-amd64.tar.gz /tmp/go
+rm -rf ${GITLAB_HOME}/repositories
 
 # remove HSTS config from the default headers, we configure it in nginx
-exec_as_git sed -i "/headers\['Strict-Transport-Security'\]/d" ${GITLAB_INSTALL_DIR}/app/controllers/application_controller.rb
+sed -i "/headers\['Strict-Transport-Security'\]/d" ${GITLAB_INSTALL_DIR}/app/controllers/application_controller.rb
 
 # revert `rake gitlab:setup` changes from gitlabhq/gitlabhq@a54af831bae023770bf9b2633cc45ec0d5f5a66a
-exec_as_git sed -i 's/db:reset/db:setup/' ${GITLAB_INSTALL_DIR}/lib/tasks/gitlab/setup.rake
+sed -i 's/db:reset/db:setup/' ${GITLAB_INSTALL_DIR}/lib/tasks/gitlab/setup.rake
 
 cd ${GITLAB_INSTALL_DIR}
 
-# install gems, use local cache if available
-if [[ -d ${GEM_CACHE_DIR} ]]; then
-  mv ${GEM_CACHE_DIR} ${GITLAB_INSTALL_DIR}/vendor/cache
-  chown -R ${GITLAB_USER}: ${GITLAB_INSTALL_DIR}/vendor/cache
-fi
-
-exec_as_git bundle install --standalone -j$(nproc) --deployment --without development test aws
-
-# make sure everything in ${GITLAB_HOME} is owned by ${GITLAB_USER} user
-chown -R ${GITLAB_USER}: ${GITLAB_HOME}
-
-# gitlab.yml and database.yml are required for `assets:precompile`
-exec_as_git cp ${GITLAB_INSTALL_DIR}/config/resque.yml.example ${GITLAB_INSTALL_DIR}/config/resque.yml
-exec_as_git cp ${GITLAB_INSTALL_DIR}/config/gitlab.yml.example ${GITLAB_INSTALL_DIR}/config/gitlab.yml
-exec_as_git cp ${GITLAB_INSTALL_DIR}/config/database.yml.mysql ${GITLAB_INSTALL_DIR}/config/database.yml
-
-# Installs nodejs packages required to compile webpack - unnecessary if using
-# tarball distribution of webpack files
-exec_as_git yarn install --production --pure-lockfile
-exec_as_git yarn add ajv@^4.0.0
-exec_as_git bundle exec rake gitlab:assets:compile USE_DB=false SKIP_STORAGE_VALIDATION=true
+cp ${GITLAB_INSTALL_DIR}/config/resque.yml.example ${GITLAB_INSTALL_DIR}/config/resque.yml
+cp ${GITLAB_INSTALL_DIR}/config/gitlab.yml.example ${GITLAB_INSTALL_DIR}/config/gitlab.yml
+cp ${GITLAB_INSTALL_DIR}/config/database.yml.mysql ${GITLAB_INSTALL_DIR}/config/database.yml
 
 # remove auto generated ${GITLAB_DATA_DIR}/config/secrets.yml
 rm -rf ${GITLAB_DATA_DIR}/config/secrets.yml
@@ -135,24 +36,20 @@ rm -rf ${GITLAB_DATA_DIR}/config/secrets.yml
 # remove gitlab shell and workhorse secrets
 rm -f ${GITLAB_INSTALL_DIR}/.gitlab_shell_secret ${GITLAB_INSTALL_DIR}/.gitlab_workhorse_secret
 
-exec_as_git mkdir -p ${GITLAB_INSTALL_DIR}/tmp/pids/ ${GITLAB_INSTALL_DIR}/tmp/sockets/
+mkdir -p ${GITLAB_INSTALL_DIR}/tmp/pids/ ${GITLAB_INSTALL_DIR}/tmp/sockets/
 chmod -R u+rwX ${GITLAB_INSTALL_DIR}/tmp
 
 # symlink ${GITLAB_HOME}/.ssh -> ${GITLAB_LOG_DIR}/gitlab
 rm -rf ${GITLAB_HOME}/.ssh
-exec_as_git ln -sf ${GITLAB_DATA_DIR}/.ssh ${GITLAB_HOME}/.ssh
-
-# symlink ${GITLAB_INSTALL_DIR}/log -> ${GITLAB_LOG_DIR}/gitlab
-rm -rf ${GITLAB_INSTALL_DIR}/log
-ln -sf ${GITLAB_LOG_DIR}/gitlab ${GITLAB_INSTALL_DIR}/log
+ln -sf ${GITLAB_DATA_DIR}/.ssh ${GITLAB_HOME}/.ssh
 
 # symlink ${GITLAB_INSTALL_DIR}/public/uploads -> ${GITLAB_DATA_DIR}/uploads
 rm -rf ${GITLAB_INSTALL_DIR}/public/uploads
-exec_as_git ln -sf ${GITLAB_DATA_DIR}/uploads ${GITLAB_INSTALL_DIR}/public/uploads
+ln -sf ${GITLAB_DATA_DIR}/uploads ${GITLAB_INSTALL_DIR}/public/uploads
 
 # symlink ${GITLAB_INSTALL_DIR}/.secret -> ${GITLAB_DATA_DIR}/.secret
 rm -rf ${GITLAB_INSTALL_DIR}/.secret
-exec_as_git ln -sf ${GITLAB_DATA_DIR}/.secret ${GITLAB_INSTALL_DIR}/.secret
+ln -sf ${GITLAB_DATA_DIR}/.secret ${GITLAB_INSTALL_DIR}/.secret
 
 # WORKAROUND for https://github.com/sameersbn/docker-gitlab/issues/509
 rm -rf ${GITLAB_INSTALL_DIR}/builds
@@ -162,60 +59,54 @@ rm -rf ${GITLAB_INSTALL_DIR}/shared
 cp ${GITLAB_INSTALL_DIR}/lib/support/init.d/gitlab /etc/init.d/gitlab
 chmod +x /etc/init.d/gitlab
 
-# disable default nginx configuration and enable gitlab's nginx configuration
-# rm -rf /etc/nginx/sites-enabled/default
-
-# move supervisord.log file to ${GITLAB_LOG_DIR}/supervisor/
-# sed -i "s|^[#]*logfile=.*|logfile=${GITLAB_LOG_DIR}/supervisor/supervisord.log ;|" /etc/supervisord.conf
-
 # configure supervisord log rotation
-cat > /etc/logrotate.d/supervisord <<EOF
-${GITLAB_LOG_DIR}/supervisor/*.log {
-  weekly
-  missingok
-  rotate 52
-  compress
-  delaycompress
-  notifempty
-  copytruncate
-}
-EOF
+# cat > /etc/logrotate.d/supervisord <<EOF
+# ${GITLAB_LOG_DIR}/supervisor/*.log {
+#   weekly
+#   missingok
+#   rotate 52
+#   compress
+#   delaycompress
+#   notifempty
+#   copytruncate
+# }
+# EOF
 
 # configure gitlab log rotation
-cat > /etc/logrotate.d/gitlab <<EOF
-${GITLAB_LOG_DIR}/gitlab/*.log {
-  weekly
-  missingok
-  rotate 52
-  compress
-  delaycompress
-  notifempty
-  copytruncate
-}
-EOF
+# cat > /etc/logrotate.d/gitlab <<EOF
+# ${GITLAB_LOG_DIR}/gitlab/*.log {
+#   weekly
+#   missingok
+#   rotate 52
+#   compress
+#   delaycompress
+#   notifempty
+#   copytruncate
+# }
+# EOF
 
 # configure gitlab-shell log rotation
-cat > /etc/logrotate.d/gitlab-shell <<EOF
-${GITLAB_LOG_DIR}/gitlab-shell/*.log {
-  weekly
-  missingok
-  rotate 52
-  compress
-  delaycompress
-  notifempty
-  copytruncate
-}
-EOF
+# cat > /etc/logrotate.d/gitlab-shell <<EOF
+# ${GITLAB_LOG_DIR}/gitlab-shell/*.log {
+#   weekly
+#   missingok
+#   rotate 52
+#   compress
+#   delaycompress
+#   notifempty
+#   copytruncate
+# }
+# EOF
 
 # configure gitlab vhost log rotation
-cat > /etc/logrotate.d/gitlab-nginx <<EOF
-${GITLAB_LOG_DIR}/nginx/*.log {
-  weekly
-  missingok
-  rotate 52
-  compress
-  delaycompress
-  notifempty
-  copytruncate
-}
-EOF
+# cat > /etc/logrotate.d/gitlab-nginx <<EOF
+# ${GITLAB_LOG_DIR}/nginx/*.log {
+#   weekly
+#   missingok
+#   rotate 52
+#   compress
+#   delaycompress
+#   notifempty
+#   copytruncate
+# }
+# EOF
