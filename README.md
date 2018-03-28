@@ -72,6 +72,8 @@ GitLab CE is set up in the Docker image using the [install from source](https://
 
 For other methods to install GitLab please refer to the [Official GitLab Installation Guide](https://about.gitlab.com/installation/) which includes a [GitLab image for Docker](https://gitlab.com/gitlab-org/gitlab-ce/tree/master/docker).
 
+> Please note, this is a fork of the great [sameersbn/docker-gitlab](https://github.com/sameersbn/docker-gitlab) repository
+
 # Contributing
 
 If you find this image useful here's how you can help:
