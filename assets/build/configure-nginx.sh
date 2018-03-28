@@ -46,6 +46,9 @@ http {
     listen [::]:3000 default ipv6only=on;
  
     root /usr/share/nginx/html;
+
+    access_log /dev/stdout;
+    error_log /dev/stderr;
  
     location / {
       # First attempt to serve request as file, then as directory, then fall
