@@ -180,7 +180,7 @@ gitlab_check_database_connection() {
       prog="mysqladmin -h ${DB_HOST} -P ${DB_PORT} -u ${DB_USER} ${DB_PASS:+-p$DB_PASS} status"
       ;;
     postgresql)
-      prog=$(find / -name pg_isready | head -1)
+      prog=$(find / -name pg_isready 2>/dev/null | head -1)
       prog="${prog} -h ${DB_HOST} -p ${DB_PORT} -U ${DB_USER} -d ${DB_NAME} -t 1"
       ;;
   esac
