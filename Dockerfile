@@ -23,7 +23,7 @@ ENV GITLAB_INSTALL_DIR="${GITLAB_HOME}/gitlab" \
     GITLAB_BUILD_DIR="${GITLAB_CACHE_DIR}/build" \
     GITLAB_RUNTIME_DIR="${GITLAB_CACHE_DIR}/runtime" \
     SUPERVISOR_DIR="${GITLAB_HOME}/supervisord" \
-    SUPERVISOR_CONF="${SUPERVISOR_CONF}/supervisord.conf"
+    SUPERVISOR_CONF="${SUPERVISOR_DIR}/supervisord.conf"
 
 # enable epel repository
 RUN rpm -Uvh https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
