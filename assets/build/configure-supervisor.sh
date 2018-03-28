@@ -4,6 +4,7 @@ set -ex
 SUPERVISOR_CONF_DIR="${SUPERVISOR_DIR}/supervisord.d"
 
 mkdir -p ${GITLAB_HOME}/tmp/supervisord
+mkdir -p ${SUPERVISOR_CONF_DIR}
 
 cat > ${SUPERVISOR_CONF} <<EOF
 [unix_http_server]
@@ -35,8 +36,6 @@ EOF
 # sed -i 's/\;serverurl=http:\/\/127.0.0.1:9001/serverurl=http:\/\/127.0.0.1:9001/' ${SUPERVISOR_CONF}
 # sed -i 's/logfile=.\*/logfile=\/dev\/stdout/' ${SUPERVISOR_CONF}
 # sed -i 's/logfile_maxbytes=.\*/logfile_maxbytes=0/' ${SUPERVISOR_CONF}
-
-mkdir -p ${SUPERVISOR_CONF_DIR}
 
 # configure supervisord to start unicorn
 cat > ${SUPERVISOR_CONF_DIR}/unicorn.conf <<EOF
