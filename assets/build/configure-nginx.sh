@@ -12,7 +12,6 @@ error_log /dev/stderr;
 pid /tmp/nginx.pid;
 
 include /usr/share/nginx/modules/*.conf;
-include ${NGINX_CONF_DIR}/*;
 
 events {
     worker_connections 1024;
@@ -33,26 +32,12 @@ http {
   include /etc/nginx/mime.types;
   index index.html index.htm index.php;
  
-  log_format   main '$remote_addr - $remote_user [$time_local] $status '
+  log_format main '$remote_addr - $remote_user [$time_local] $status '
     '"$request" $body_bytes_sent "$http_referer" '
     '"$http_user_agent" "$http_x_forwarded_for"';
  
   default_type application/octet-stream;
- 
-  server {
-    listen 3000;
-    listen [::]:3000 default ipv6only=on;
- 
-    root /usr/share/nginx/html;
 
-    access_log /dev/stdout;
-    error_log /dev/stderr;
- 
-    location / {
-      # First attempt to serve request as file, then as directory, then fall
-      # back to index.html.
-      try_files $uri $uri/ /index.html;
-    }
-  }
+  include ${NGINX_CONF_DIR}/*;
 }
 EOF
