@@ -64,6 +64,7 @@ RUN gem install bundler --no-doc
 # create gitlab user and configure git
 RUN adduser --shell /bin/false ${GITLAB_USER} && \
     passwd -d ${GITLAB_USER} && \
+    mkdir -p ${GITLAB_INSTALL_DIR}/tmp/pids/ ${GITLAB_INSTALL_DIR}/tmp/sockets/ && \
     chown -R ${GITLAB_USER}: ${GITLAB_HOME} && \
     sudo -HEu ${GITLAB_USER} git config --global core.autocrlf input && \
     sudo -HEu ${GITLAB_USER} git config --global gc.auto 0 && \

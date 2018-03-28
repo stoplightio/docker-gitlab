@@ -7,7 +7,7 @@ mkdir -p ${SUPERVISOR_CONF_DIR} && chown -R ${GITLAB_USER}: ${SUPERVISOR_CONF_DI
 echo ${SUPERVISOR_CONF}
 cat > ${SUPERVISOR_CONF} <<EOF
 [unix_http_server]
-file=${GITLAB_HOME}/tmp/supervisord/supervisor.sock
+file=${GITLAB_HOME}/tmp/sockets/supervisor.sock
 
 [supervisord]
 logfile=/dev/stdout
