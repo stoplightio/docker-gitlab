@@ -11,8 +11,6 @@ worker_processes 1;
 error_log /dev/stderr;
 pid /tmp/nginx.pid;
 
-# server_names_hash_bucket_size 64;
-
 include /usr/share/nginx/modules/*.conf;
 include conf.d/*.conf;
 
