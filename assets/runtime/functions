@@ -15,10 +15,10 @@ GITLAB_RESQUE_CONFIG="${GITLAB_INSTALL_DIR}/config/resque.yml"
 GITLAB_SECRETS_CONFIG="${GITLAB_INSTALL_DIR}/config/secrets.yml"
 GITLAB_ROBOTS_CONFIG="${GITLAB_INSTALL_DIR}/public/robots.txt"
 GITLAB_SHELL_CONFIG="${GITLAB_SHELL_INSTALL_DIR}/config.yml"
-GITLAB_NGINX_CONFIG="/etc/nginx/conf.d/gitlab"
-GITLAB_CI_NGINX_CONFIG="/etc/nginx/conf.d/gitlab_ci"
-GITLAB_REGISTRY_NGINX_CONFIG="/etc/nginx/conf.d/gitlab-registry"
-GITLAB_PAGES_NGINX_CONFIG="/etc/nginx/conf.d/gitlab-pages"
+GITLAB_NGINX_CONFIG="${NGINX_CONF_DIR}/gitlab"
+GITLAB_CI_NGINX_CONFIG="${NGINX_CONF_DIR}/gitlab_ci"
+GITLAB_REGISTRY_NGINX_CONFIG="${NGINX_CONF_DIR}/gitlab-registry"
+GITLAB_PAGES_NGINX_CONFIG="${NGINX_CONF_DIR}/gitlab-pages"
 GITLAB_GITALY_CONFIG="${GITLAB_GITALY_INSTALL_DIR}/config.toml"
 
 # Compares two version strings `a` and `b`
@@ -299,7 +299,7 @@ gitlab_configure_monitoring() {
 
 gitlab_configure_gitlab_workhorse() {
   echo "Configuring gitlab::gitlab-workhorse..."
-  update_template /etc/supervisord.d/gitlab-workhorse.conf \
+  update_template ${SUPERVISOR_CONF_DIR}/gitlab-workhorse.conf \
     GITLAB_RELATIVE_URL_ROOT \
     GITLAB_WORKHORSE_TIMEOUT
 }
@@ -433,7 +433,7 @@ gitlab_configure_mailroom() {
 
   # enable/disable startup of mailroom
   echo "mail_room_enabled=${GITLAB_INCOMING_EMAIL_ENABLED}" >> /etc/default/gitlab
-  update_template /etc/supervisord.d/mail_room.conf GITLAB_INCOMING_EMAIL_ENABLED
+  update_template ${SUPERVISOR_CONF_DIR}/mail_room.conf GITLAB_INCOMING_EMAIL_ENABLED
 }
 
 gitlab_configure_ldap() {
@@ -743,7 +743,7 @@ gitlab_configure_sidekiq() {
   echo "Configuring gitlab::sidekiq..."
 
   # configure sidekiq
-  update_template /etc/supervisord.d/sidekiq.conf \
+  update_template ${SUPERVISOR_CONF_DIR}/sidekiq.conf \
     SIDEKIQ_CONCURRENCY \
     SIDEKIQ_SHUTDOWN_TIMEOUT
 
@@ -1390,7 +1390,8 @@ install_configuration_templates() {
     cp ${GITLAB_ROBOTS_PATH} ${GITLAB_ROBOTS_CONFIG}
   fi
 
-  ## ${GITLAB_NGINX_CONFIG}
+  # setup nginx
+  test -d $(dirname ${GITLAB_NGINX_CONFIG}) || mkdir -p $(dirname ${GITLAB_NGINX_CONFIG})
   if [[ ${GITLAB_HTTPS} == true ]]; then
     if [[ -f ${SSL_CERTIFICATE_PATH} && -f ${SSL_KEY_PATH} && -f ${SSL_DHPARAM_PATH} ]]; then
       install_template ${GITLAB_USER}: nginx/gitlab-ssl ${GITLAB_NGINX_CONFIG}
@@ -1414,8 +1415,6 @@ install_configuration_templates() {
       install_template ${GITLAB_USER}: nginx/gitlab-pages ${GITLAB_PAGES_NGINX_CONFIG}
     fi
   fi
-
-
 
   if [[ -n $GITLAB_CI_HOST ]]; then
     install_template ${GITLAB_USER}: nginx/gitlab_ci ${GITLAB_CI_NGINX_CONFIG}
@@ -1503,7 +1502,7 @@ configure_gitlab_shell() {
 configure_gitlab_pages() {
   if [[ ${GITLAB_PAGES_ENABLED} == true ]]; then
   echo "Configuring gitlab-pages..."
-cat > /etc/supervisord.d/gitlab-pages.conf <<EOF
+cat > ${SUPERVISOR_CONF_DIR}/gitlab-pages.conf <<EOF
 [program:gitlab-pages]
 priority=20
 directory=${GITLAB_INSTALL_DIR}
@@ -1515,21 +1514,21 @@ command=/usr/local/bin/gitlab-pages
 EOF
 
 if [[ -n ${GITLAB_PAGES_EXTERNAL_HTTP} ]]; then
-cat >> /etc/supervisord.d/gitlab-pages.conf <<EOF
+cat >> ${SUPERVISOR_CONF_DIR}/gitlab-pages.conf <<EOF
   -listen-http ${GITLAB_PAGES_EXTERNAL_HTTP}
 EOF
 fi
 
 
 if [[ -n ${GITLAB_PAGES_EXTERNAL_HTTPS} ]]; then
-cat >> /etc/supervisord.d/gitlab-pages.conf <<EOF
+cat >> ${SUPERVISOR_CONF_DIR}/gitlab-pages.conf <<EOF
   -listen-https ${GITLAB_PAGES_EXTERNAL_HTTPS}
   -root-cert ${SSL_PAGES_CERT_PATH}
   -root-key ${SSL_PAGES_KEY_PATH}
 EOF
 fi
 
-cat >> /etc/supervisord.d/gitlab-pages.conf <<EOF
+cat >> ${SUPERVISOR_CONF_DIR}/gitlab-pages.conf <<EOF
 user=git
 autostart=true
 autorestart=true
@@ -1544,7 +1543,7 @@ configure_nginx() {
   sed -i \
   -e "s|worker_processes .*|worker_processes ${NGINX_WORKERS};|" \
   -e "s|# server_names_hash_bucket_size 64;|server_names_hash_bucket_size ${NGINX_SERVER_NAMES_HASH_BUCKET_SIZE};|" \
-  /etc/nginx/nginx.conf
+  ${NGINX_CONF}
 
   nginx_configure_gitlab
   nginx_configure_gitlab_ci
