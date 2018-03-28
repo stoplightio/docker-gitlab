@@ -23,11 +23,12 @@ ENV GITLAB_INSTALL_DIR="${GITLAB_HOME}/gitlab" \
     GITLAB_BUILD_DIR="${GITLAB_CACHE_DIR}/build" \
     GITLAB_RUNTIME_DIR="${GITLAB_CACHE_DIR}/runtime" \
     SUPERVISOR_DIR="${GITLAB_HOME}/supervisord" \
-    SUPERVISOR_CONF="${SUPERVISOR_DIR}/supervisord.conf" \
-    SUPERVISOR_CONF_DIR="${SUPERVISOR_DIR}/supervisord.d" \
     NGINX_DIR="${GITLAB_HOME}/nginx" \
     NGINX_CONF="${GITLAB_HOME}/nginx/nginx.conf" \
     NGINX_CONF_DIR="${GITLAB_HOME}/nginx/conf.d"
+
+ENV SUPERVISOR_CONF="${SUPERVISOR_DIR}/supervisord.conf" \
+    SUPERVISOR_CONF_DIR="${SUPERVISOR_DIR}/supervisord.d"
 
 # enable epel repository
 RUN rpm -Uvh https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
@@ -91,7 +92,6 @@ WORKDIR ${GITLAB_SHELL_INSTALL_DIR}
 RUN bundle install --local
 
 WORKDIR ${GITLAB_HOME}
-RUN chown -R ${GITLAB_USER}: .
 # purge build dependencies and cleanup yum
 RUN yum autoremove -y && \
     rm -rf /var/cache/yum/*
