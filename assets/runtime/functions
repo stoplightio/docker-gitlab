@@ -1600,7 +1600,7 @@ migrate_database() {
     fi
 
     echo "Migrating database..."
-    bundle exec rake db:migrate >/dev/null
+    bundle exec rake db:migrate
 
     if [[ ${DB_ADAPTER} == mysql2 ]]; then
       bundle exec rake add_limits_mysql >/dev/null
