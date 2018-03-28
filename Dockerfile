@@ -66,6 +66,7 @@ RUN bash ${GITLAB_BUILD_DIR}/configure-nginx.sh
 # create gitlab user and configure git
 RUN adduser --shell /bin/false ${GITLAB_USER} && \
     passwd -d ${GITLAB_USER} && \
+    chown -R ${GITLAB_USER}: ${GITLAB_HOME} && \
     sudo -HEu ${GITLAB_USER} git config --global core.autocrlf input && \
     sudo -HEu ${GITLAB_USER} git config --global gc.auto 0 && \
     sudo -HEu ${GITLAB_USER} git config --global repack.writeBitmaps true
