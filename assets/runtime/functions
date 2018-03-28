@@ -432,7 +432,7 @@ gitlab_configure_mailroom() {
     IMAP_TIMEOUT
 
   # enable/disable startup of mailroom
-  echo "mail_room_enabled=${GITLAB_INCOMING_EMAIL_ENABLED}" >> /etc/default/gitlab
+  # echo "mail_room_enabled=${GITLAB_INCOMING_EMAIL_ENABLED}" >> /etc/default/gitlab
   update_template ${SUPERVISOR_CONF_DIR}/mail_room.conf GITLAB_INCOMING_EMAIL_ENABLED
 }
 
