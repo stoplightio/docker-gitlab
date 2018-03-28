@@ -16,8 +16,8 @@ case ${1} in
     case ${1} in
       app:start)
         migrate_database
-        rm -rf /var/run/supervisor.sock
-        exec /usr/bin/supervisord -nc /etc/supervisord.conf
+        rm -rf ${GITLAB_HOME}/tmp/supervisord/supervisor.sock
+        exec /usr/bin/supervisord -c ${SUPERVISOR_CONF}
         ;;
       app:init)
         migrate_database

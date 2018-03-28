@@ -1,15 +1,45 @@
 #!/bin/bash
 set -ex
 
+SUPERVISOR_CONF_DIR="${SUPERVISOR_DIR}/supervisord.d"
+
+mkdir -p ${GITLAB_HOME}/tmp/supervisord
+
+cat > ${SUPERVISOR_CONF} <<EOF
+[unix_http_server]
+file=${GITLAB_HOME}/tmp/supervisord/supervisor.sock
+
+[supervisord]
+logfile=/dev/stdout
+logfile_maxbytes=0MB
+logfile_backups=10
+loglevel=info
+pidfile=${GITLAB_HOME}/tmp/supervisord/supervisord.pid
+nodaemon=true
+minfds=1024
+minprocs=200
+
+[rpcinterface:supervisor]
+supervisor.rpcinterface_factory = supervisor.rpcinterface:make_main_rpcinterface
+
+[supervisorctl]
+serverurl=http://127.0.0.1:9001 ; use an http:// url to specify an inet socket
+
+[include]
+files = supervisord.d/*.conf
+EOF
+
 # update supervisor config
-sed -i 's/supervisord.d\/\*.ini/supervisord.d\/\*.conf/' /etc/supervisord.conf
-sed -i 's/serverurl=unix.*/;serverurl=unix/' /etc/supervisord.conf
-sed -i 's/\;serverurl=http:\/\/127.0.0.1:9001/serverurl=http:\/\/127.0.0.1:9001/' /etc/supervisord.conf
-sed -i 's/logfile=.\*/logfile=\/dev\/stdout/' /etc/supervisord.conf
-sed -i 's/logfile_maxbytes=.\*/logfile_maxbytes=0/' /etc/supervisord.conf
+# sed -i 's/supervisord.d\/\*.ini/supervisord.d\/\*.conf/' ${SUPERVISOR_CONF}
+# sed -i 's/serverurl=unix.*/;serverurl=unix/' ${SUPERVISOR_CONF}
+# sed -i 's/\;serverurl=http:\/\/127.0.0.1:9001/serverurl=http:\/\/127.0.0.1:9001/' ${SUPERVISOR_CONF}
+# sed -i 's/logfile=.\*/logfile=\/dev\/stdout/' ${SUPERVISOR_CONF}
+# sed -i 's/logfile_maxbytes=.\*/logfile_maxbytes=0/' ${SUPERVISOR_CONF}
+
+mkdir -p ${SUPERVISOR_CONF_DIR}
 
 # configure supervisord to start unicorn
-cat > /etc/supervisord.d/unicorn.conf <<EOF
+cat > ${SUPERVISOR_CONF_DIR}/unicorn.conf <<EOF
 [program:unicorn]
 priority=10
 directory=${GITLAB_INSTALL_DIR}
@@ -26,7 +56,7 @@ stderr_logfile_maxbytes=0
 EOF
 
 # configure supervisord to start sidekiq
-cat > /etc/supervisord.d/sidekiq.conf <<EOF
+cat > ${SUPERVISOR_CONF_DIR}/sidekiq.conf <<EOF
 [program:sidekiq]
 priority=10
 directory=${GITLAB_INSTALL_DIR}
@@ -47,7 +77,7 @@ stderr_logfile_maxbytes=0
 EOF
 
 # configure supervisord to start gitlab-workhorse
-cat > /etc/supervisord.d/gitlab-workhorse.conf <<EOF
+cat > ${SUPERVISOR_CONF_DIR}/gitlab-workhorse.conf <<EOF
 [program:gitlab-workhorse]
 priority=20
 directory=${GITLAB_INSTALL_DIR}
@@ -70,7 +100,7 @@ stderr_logfile_maxbytes=0
 EOF
 
 # configure supervisord to start gitaly
-cat > /etc/supervisord.d/gitaly.conf <<EOF
+cat > ${SUPERVISOR_CONF_DIR}/gitaly.conf <<EOF
 [program:gitaly]
 priority=5
 directory=${GITLAB_GITALY_INSTALL_DIR}
@@ -86,7 +116,7 @@ stderr_logfile_maxbytes=0
 EOF
 
 # configure supervisord to start nginx
-cat > /etc/supervisord.d/nginx.conf <<EOF
+cat > ${SUPERVISOR_CONF_DIR}/nginx.conf <<EOF
 [program:nginx]
 priority=20
 directory=/tmp

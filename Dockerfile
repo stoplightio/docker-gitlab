@@ -21,7 +21,9 @@ ENV GITLAB_INSTALL_DIR="${GITLAB_HOME}/gitlab" \
     GITLAB_GITALY_INSTALL_DIR="${GITLAB_HOME}/gitaly" \
     GITLAB_DATA_DIR="${GITLAB_HOME}/data" \
     GITLAB_BUILD_DIR="${GITLAB_CACHE_DIR}/build" \
-    GITLAB_RUNTIME_DIR="${GITLAB_CACHE_DIR}/runtime"
+    GITLAB_RUNTIME_DIR="${GITLAB_CACHE_DIR}/runtime" \
+    SUPERVISOR_DIR="${GITLAB_HOME_DIR}/supervisord" \
+    SUPERVISOR_CONF="${SUPERVISOR_CONF}/supervisord.conf"
 
 # enable epel repository
 RUN rpm -Uvh https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
@@ -87,7 +89,8 @@ COPY entrypoint.sh /sbin/entrypoint.sh
 RUN chmod 755 /sbin/entrypoint.sh
 
 EXPOSE 80/tcp 443/tcp
-VOLUME ["${GITLAB_DATA_DIR}"]
+VOLUME [ "${GITLAB_DATA_DIR}" ]
 
 USER git
-CMD ["exec","/usr/bin/supervisord","-nc","/etc/supervisord.conf"]
+ENTRYPOINT [ "/sbin/entrypoint.sh" ]
+CMD [ "app:start" ]
