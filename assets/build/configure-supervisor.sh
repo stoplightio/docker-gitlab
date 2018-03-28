@@ -14,7 +14,7 @@ logfile=/dev/stdout
 logfile_maxbytes=0MB
 logfile_backups=10
 loglevel=info
-pidfile=${GITLAB_HOME}/tmp/supervisord/supervisord.pid
+pidfile=${GITLAB_HOME}/tmp/pids/supervisord.pid
 nodaemon=true
 minfds=1024
 minprocs=200
@@ -64,7 +64,6 @@ command=bundle exec sidekiq -c {{SIDEKIQ_CONCURRENCY}}
   -e ${RAILS_ENV}
   -t {{SIDEKIQ_SHUTDOWN_TIMEOUT}}
   -P ${GITLAB_INSTALL_DIR}/tmp/pids/sidekiq.pid
-  -L ${GITLAB_INSTALL_DIR}/log/sidekiq.log
 user=git
 autostart=true
 autorestart=true
