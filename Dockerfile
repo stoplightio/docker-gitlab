@@ -90,11 +90,13 @@ RUN yum autoremove -y && \
 
 # configure supervisord
 COPY assets/build/configure-supervisor.sh ${GITLAB_BUILD_DIR}/
-RUN bash ${GITLAB_BUILD_DIR}/configure-supervisor.sh
+RUN bash ${GITLAB_BUILD_DIR}/configure-supervisor.sh && \
+    chown -R ${GITLAB_USER}: ${SUPERVISOR_DIR}
 
 # configure nginx
 COPY assets/build/configure-nginx.sh ${GITLAB_BUILD_DIR}/
-RUN bash ${GITLAB_BUILD_DIR}/configure-nginx.sh
+RUN bash ${GITLAB_BUILD_DIR}/configure-nginx.sh && \
+    chown -R ${GITLAB_USER}: ${NGINX_DIR}
 
 WORKDIR ${GITLAB_HOME}
 
