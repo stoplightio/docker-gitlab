@@ -6,6 +6,7 @@ SUPERVISOR_CONF_DIR="${SUPERVISOR_DIR}/supervisord.d"
 mkdir -p ${GITLAB_HOME}/tmp/supervisord
 mkdir -p ${SUPERVISOR_CONF_DIR}
 
+echo ${SUPERVISOR_CONF}
 cat > ${SUPERVISOR_CONF} <<EOF
 [unix_http_server]
 file=${GITLAB_HOME}/tmp/supervisord/supervisor.sock

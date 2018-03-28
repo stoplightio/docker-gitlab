@@ -75,12 +75,18 @@ RUN adduser --shell /bin/false ${GITLAB_USER} && \
 COPY assets/gitlab-10.3.4_full.tar.gz /tmp/
 RUN tar -xf /tmp/gitlab-10.3.4_full.tar.gz -C /home/git/ && \
     cp -f /home/git/gitaly/gitaly /usr/local/bin/ && \
-    cp -f /home/git/gitlab-pages/gitlab-pages /usr/local/bin/
+    cp -f /home/git/gitlab-pages/gitlab-pages /usr/local/bin/ && \
+    cp -f /home/git/gitlab-workhorse/gitlab-workhorse /usr/local/bin/
 
 # build gem extensions
 WORKDIR ${GITLAB_INSTALL_DIR}
 RUN bundle install --local --without development test aws
+WORKDIR ${GITLAB_GITALY_INSTALL_DIR}/ruby
+RUN bundle install --local
+WORKDIR ${GITLAB_SHELL_INSTALL_DIR}
+RUN bundle install --local
 
+WORKDIR ${GITLAB_HOME}
 # purge build dependencies and cleanup yum
 RUN yum autoremove -y && \
     rm -rf /var/cache/yum/*

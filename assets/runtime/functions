@@ -1453,6 +1453,7 @@ configure_gitlab() {
     GITLAB_USERNAME_CHANGE \
     GITLAB_CREATE_GROUP 
 
+  initialize_datadir
   gitlab_configure_database
   gitlab_configure_redis
   gitlab_configure_secrets
