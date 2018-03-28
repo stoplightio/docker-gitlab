@@ -7,14 +7,14 @@ mkdir -p ${SUPERVISOR_CONF_DIR} && chown -R ${GITLAB_USER}: ${SUPERVISOR_CONF_DI
 echo ${SUPERVISOR_CONF}
 cat > ${SUPERVISOR_CONF} <<EOF
 [unix_http_server]
-file=${GITLAB_HOME}/tmp/sockets/supervisor.sock
+file=${GITLAB_INSTALL_DIR}/tmp/sockets/supervisor.sock
 
 [supervisord]
 logfile=/dev/stdout
 logfile_maxbytes=0MB
 logfile_backups=10
 loglevel=info
-pidfile=${GITLAB_HOME}/tmp/pids/supervisord.pid
+pidfile=${GITLAB_INSTALL_DIR}/tmp/pids/supervisord.pid
 nodaemon=true
 minfds=1024
 minprocs=200
