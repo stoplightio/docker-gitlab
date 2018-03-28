@@ -80,7 +80,7 @@ priority=20
 directory=${GITLAB_INSTALL_DIR}
 environment=HOME=${GITLAB_HOME}
 command=/usr/local/bin/gitlab-workhorse
-  -listenUmask 700
+  -listenUmask 0
   -listenNetwork unix
   -listenAddr "${GITLAB_INSTALL_DIR}/tmp/sockets/gitlab-workhorse.socket"
   -authSocket ${GITLAB_INSTALL_DIR}/tmp/sockets/gitlab.socket
