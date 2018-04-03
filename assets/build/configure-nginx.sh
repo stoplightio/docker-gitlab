@@ -29,12 +29,11 @@ http {
   keepalive_timeout 65;
   types_hash_max_size 2048;
  
-  include /etc/nginx/mime.types;
   index index.html index.htm index.php;
  
-  log_format main '$remote_addr - $remote_user [$time_local] $status '
-    '"$request" $body_bytes_sent "$http_referer" '
-    '"$http_user_agent" "$http_x_forwarded_for"';
+  log_format main '\$remote_addr - \$remote_user [\$time_local] \$status '
+    '\"$request" \$body_bytes_sent "\$http_referer" '
+    '"\$http_user_agent" "\$http_x_forwarded_for"';
  
   default_type application/octet-stream;
 
