@@ -4,6 +4,8 @@ set -ex
 mkdir -p ${GITLAB_HOME}/tmp/supervisord && chown -R ${GITLAB_USER}: ${GITLAB_HOME}/tmp
 mkdir -p ${SUPERVISOR_CONF_DIR} && chown -R ${GITLAB_USER}: ${SUPERVISOR_CONF_DIR}
 
+test -z "${NGINX_PATH}" && NGINX_PATH="$(find / -name 'nginx' -type f -executable 2>/dev/null | head -1)"
+
 echo ${SUPERVISOR_CONF}
 cat > ${SUPERVISOR_CONF} <<EOF
 [unix_http_server]
@@ -116,7 +118,7 @@ cat > ${SUPERVISOR_CONF_DIR}/nginx.conf <<EOF
 [program:nginx]
 priority=20
 directory=${NGINX_DIR}
-command=/usr/sbin/nginx -p ${NGINX_DIR} -g "daemon off;" -c ${NGINX_CONF}
+command=${NGINX_PATH} -p ${NGINX_DIR} -g "daemon off;" -c ${NGINX_CONF}
 user=git
 autostart=true
 autorestart=true
