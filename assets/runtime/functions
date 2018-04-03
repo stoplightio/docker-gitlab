@@ -1630,7 +1630,7 @@ migrate_database() {
     fi
 
     echo "Clearing cache..."
-    bundle exec rake cache:clear >/dev/null 2>&1
+    bundle exec rake cache:clear
     echo "${GITLAB_RELATIVE_URL_ROOT}" > ${GITLAB_TEMP_DIR}/GITLAB_RELATIVE_URL_ROOT
   fi
 }
