@@ -65,7 +65,6 @@ RUN gem install bundler --no-doc
 RUN adduser --shell /bin/false ${GITLAB_USER} && \
     passwd -d ${GITLAB_USER} && \
     mkdir -p ${GITLAB_INSTALL_DIR}/tmp/pids/ ${GITLAB_INSTALL_DIR}/tmp/sockets/ && \
-    chown -R ${GITLAB_USER}: ${GITLAB_HOME} && \
     sudo -HEu ${GITLAB_USER} git config --global core.autocrlf input && \
     sudo -HEu ${GITLAB_USER} git config --global gc.auto 0 && \
     sudo -HEu ${GITLAB_USER} git config --global repack.writeBitmaps true
@@ -91,19 +90,16 @@ RUN yum autoremove -y && \
 
 # configure supervisord
 COPY assets/build/configure-supervisor.sh ${GITLAB_BUILD_DIR}/
-RUN bash ${GITLAB_BUILD_DIR}/configure-supervisor.sh && \
-    chown -R ${GITLAB_USER}: ${SUPERVISOR_DIR}
+RUN bash ${GITLAB_BUILD_DIR}/configure-supervisor.sh
 
 # configure nginx
 COPY assets/build/configure-nginx.sh ${GITLAB_BUILD_DIR}/
-RUN bash ${GITLAB_BUILD_DIR}/configure-nginx.sh && \
-    chown -R ${GITLAB_USER}: ${NGINX_DIR}
+RUN bash ${GITLAB_BUILD_DIR}/configure-nginx.sh
 
 WORKDIR ${GITLAB_HOME}
 
 COPY assets/runtime/ ${GITLAB_RUNTIME_DIR}/
 COPY entrypoint.sh /sbin/entrypoint.sh
-RUN chmod 755 /sbin/entrypoint.sh
 
 EXPOSE 8080/tcp 8443/tcp
 VOLUME [ "${GITLAB_DATA_DIR}" ]

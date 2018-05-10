@@ -37,7 +37,6 @@ rm -rf ${GITLAB_DATA_DIR}/config/secrets.yml
 rm -f ${GITLAB_INSTALL_DIR}/.gitlab_shell_secret ${GITLAB_INSTALL_DIR}/.gitlab_workhorse_secret
 
 mkdir -p ${GITLAB_INSTALL_DIR}/tmp/pids/ ${GITLAB_INSTALL_DIR}/tmp/sockets/
-chmod -R u+rwX ${GITLAB_INSTALL_DIR}/tmp
 
 # symlink ${GITLAB_HOME}/.ssh -> ${GITLAB_LOG_DIR}/gitlab
 rm -rf ${GITLAB_HOME}/.ssh
@@ -57,7 +56,6 @@ rm -rf ${GITLAB_INSTALL_DIR}/shared
 
 # install gitlab bootscript, to silence gitlab:check warnings
 cp ${GITLAB_INSTALL_DIR}/lib/support/init.d/gitlab /etc/init.d/gitlab
-chmod +x /etc/init.d/gitlab
 
 # configure supervisord log rotation
 # cat > /etc/logrotate.d/supervisord <<EOF
