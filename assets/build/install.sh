@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-GITLAB_CLONE_URL=https://gitlab.com/gitlab-org/gitlab-ce.git
+GITLAB_CLONE_URL=https://github.com/stoplightio/gitlabhq
 GITLAB_SHELL_URL=https://gitlab.com/gitlab-org/gitlab-shell/repository/archive.tar.gz
 GITLAB_WORKHORSE_URL=https://gitlab.com/gitlab-org/gitlab-workhorse.git
 GITLAB_PAGES_URL=https://gitlab.com/gitlab-org/gitlab-pages.git
@@ -33,9 +33,9 @@ DEBIAN_FRONTEND=noninteractive apt-get install -y ${BUILD_DEPENDENCIES}
 # Applying the mark late here does make the build usable on PaX kernels, but
 # still the build itself must be executed on a non-PaX kernel. It's done here
 # only for simplicity.
-paxctl -Cm `which ruby${RUBY_VERSION}`
+paxctl -Cm $(which ruby${RUBY_VERSION})
 # https://en.wikibooks.org/wiki/Grsecurity/Application-specific_Settings#Node.js
-paxctl -Cm `which nodejs`
+paxctl -Cm $(which nodejs)
 
 # remove the host keys generated during openssh-server installation
 rm -rf /etc/ssh/ssh_host_*_key /etc/ssh/ssh_host_*_key.pub
@@ -45,7 +45,7 @@ adduser --disabled-login --gecos 'GitLab' ${GITLAB_USER}
 passwd -d ${GITLAB_USER}
 
 # set PATH (fixes cron job PATH issues)
-cat >> ${GITLAB_HOME}/.profile <<EOF
+cat >>${GITLAB_HOME}/.profile <<EOF
 PATH=/usr/local/sbin:/usr/local/bin:\$PATH
 EOF
 
@@ -195,7 +195,7 @@ sed -i \
   -e "s|^[#]*PasswordAuthentication yes|PasswordAuthentication no|" \
   -e "s|^[#]*LogLevel INFO|LogLevel VERBOSE|" \
   /etc/ssh/sshd_config
-echo "UseDNS no" >> /etc/ssh/sshd_config
+echo "UseDNS no" >>/etc/ssh/sshd_config
 
 # move supervisord.log file to ${GITLAB_LOG_DIR}/supervisor/
 sed -i "s|^[#]*logfile=.*|logfile=${GITLAB_LOG_DIR}/supervisor/supervisord.log ;|" /etc/supervisor/supervisord.conf
@@ -210,7 +210,7 @@ sed -i \
 sed -i "s|^su root syslog$|su root root|" /etc/logrotate.conf
 
 # configure supervisord log rotation
-cat > /etc/logrotate.d/supervisord <<EOF
+cat >/etc/logrotate.d/supervisord <<EOF
 ${GITLAB_LOG_DIR}/supervisor/*.log {
   weekly
   missingok
@@ -223,7 +223,7 @@ ${GITLAB_LOG_DIR}/supervisor/*.log {
 EOF
 
 # configure gitlab log rotation
-cat > /etc/logrotate.d/gitlab <<EOF
+cat >/etc/logrotate.d/gitlab <<EOF
 ${GITLAB_LOG_DIR}/gitlab/*.log {
   weekly
   missingok
@@ -236,7 +236,7 @@ ${GITLAB_LOG_DIR}/gitlab/*.log {
 EOF
 
 # configure gitlab-shell log rotation
-cat > /etc/logrotate.d/gitlab-shell <<EOF
+cat >/etc/logrotate.d/gitlab-shell <<EOF
 ${GITLAB_LOG_DIR}/gitlab-shell/*.log {
   weekly
   missingok
@@ -249,7 +249,7 @@ ${GITLAB_LOG_DIR}/gitlab-shell/*.log {
 EOF
 
 # configure gitlab vhost log rotation
-cat > /etc/logrotate.d/gitlab-nginx <<EOF
+cat >/etc/logrotate.d/gitlab-nginx <<EOF
 ${GITLAB_LOG_DIR}/nginx/*.log {
   weekly
   missingok
@@ -262,7 +262,7 @@ ${GITLAB_LOG_DIR}/nginx/*.log {
 EOF
 
 # configure supervisord to start unicorn
-cat > /etc/supervisor/conf.d/unicorn.conf <<EOF
+cat >/etc/supervisor/conf.d/unicorn.conf <<EOF
 [program:unicorn]
 priority=10
 directory=${GITLAB_INSTALL_DIR}
@@ -277,7 +277,7 @@ stderr_logfile=${GITLAB_LOG_DIR}/supervisor/%(program_name)s.log
 EOF
 
 # configure supervisord to start sidekiq
-cat > /etc/supervisor/conf.d/sidekiq.conf <<EOF
+cat >/etc/supervisor/conf.d/sidekiq.conf <<EOF
 [program:sidekiq]
 priority=10
 directory=${GITLAB_INSTALL_DIR}
@@ -296,7 +296,7 @@ stderr_logfile=${GITLAB_LOG_DIR}/supervisor/%(program_name)s.log
 EOF
 
 # configure supervisord to start gitlab-workhorse
-cat > /etc/supervisor/conf.d/gitlab-workhorse.conf <<EOF
+cat >/etc/supervisor/conf.d/gitlab-workhorse.conf <<EOF
 [program:gitlab-workhorse]
 priority=20
 directory=${GITLAB_INSTALL_DIR}
@@ -317,7 +317,7 @@ stderr_logfile=${GITLAB_INSTALL_DIR}/log/%(program_name)s.log
 EOF
 
 # configure supervisord to start gitaly
-cat > /etc/supervisor/conf.d/gitaly.conf <<EOF
+cat >/etc/supervisor/conf.d/gitaly.conf <<EOF
 [program:gitaly]
 priority=5
 directory=${GITLAB_GITALY_INSTALL_DIR}
@@ -331,7 +331,7 @@ stderr_logfile=${GITLAB_LOG_DIR}/supervisor/%(program_name)s.log
 EOF
 
 # configure supervisord to start mail_room
-cat > /etc/supervisor/conf.d/mail_room.conf <<EOF
+cat >/etc/supervisor/conf.d/mail_room.conf <<EOF
 [program:mail_room]
 priority=20
 directory=${GITLAB_INSTALL_DIR}
@@ -346,7 +346,7 @@ EOF
 
 # configure supervisor to start sshd
 mkdir -p /var/run/sshd
-cat > /etc/supervisor/conf.d/sshd.conf <<EOF
+cat >/etc/supervisor/conf.d/sshd.conf <<EOF
 [program:sshd]
 directory=/
 command=/usr/sbin/sshd -D -E ${GITLAB_LOG_DIR}/supervisor/%(program_name)s.log
@@ -358,7 +358,7 @@ stderr_logfile=${GITLAB_LOG_DIR}/supervisor/%(program_name)s.log
 EOF
 
 # configure supervisord to start nginx
-cat > /etc/supervisor/conf.d/nginx.conf <<EOF
+cat >/etc/supervisor/conf.d/nginx.conf <<EOF
 [program:nginx]
 priority=20
 directory=/tmp
@@ -371,7 +371,7 @@ stderr_logfile=${GITLAB_LOG_DIR}/supervisor/%(program_name)s.log
 EOF
 
 # configure supervisord to start crond
-cat > /etc/supervisor/conf.d/cron.conf <<EOF
+cat >/etc/supervisor/conf.d/cron.conf <<EOF
 [program:cron]
 priority=20
 directory=/tmp
