@@ -2,10 +2,10 @@
 set -ex
 
 for file in /gitlab-configs /run/secrets/gitlab-secrets; do
-	if [[ -e "$file" ]]; then
-		echo "Loading $file"
-		source "$file"
-	fi
+  if [[ -e "$file" ]]; then
+    echo "Loading $file"
+    source "$file"
+  fi
 done
 echo "Loading ${GITLAB_RUNTIME_DIR}/env-defaults"
 source ${GITLAB_RUNTIME_DIR}/env-defaults
@@ -36,9 +36,9 @@ GITLAB_GITALY_CONFIG="${GITLAB_GITALY_INSTALL_DIR}/config.toml"
 #   - non-negative integer, if `a` is greater than `b`
 vercmp() {
   expr '(' "$1" : '\([^.]*\)' ')' '-' '(' "$2" : '\([^.]*\)' ')' '|' \
-       '(' "$1.0" : '[^.]*[.]\([^.]*\)' ')' '-' '(' "$2.0" : '[^.]*[.]\([^.]*\)' ')' '|' \
-       '(' "$1.0.0" : '[^.]*[.][^.]*[.]\([^.]*\)' ')' '-' '(' "$2.0.0" : '[^.]*[.][^.]*[.]\([^.]*\)' ')' '|' \
-       '(' "$1.0.0.0" : '[^.]*[.][^.]*[.][^.]*[.]\([^.]*\)' ')' '-' '(' "$2.0.0.0" : '[^.]*[.][^.]*[.][^.]*[.]\([^.]*\)' ')'
+    '(' "$1.0" : '[^.]*[.]\([^.]*\)' ')' '-' '(' "$2.0" : '[^.]*[.]\([^.]*\)' ')' '|' \
+    '(' "$1.0.0" : '[^.]*[.][^.]*[.]\([^.]*\)' ')' '-' '(' "$2.0.0" : '[^.]*[.][^.]*[.]\([^.]*\)' ')' '|' \
+    '(' "$1.0.0.0" : '[^.]*[.][^.]*[.][^.]*[.]\([^.]*\)' ')' '-' '(' "$2.0.0.0" : '[^.]*[.][^.]*[.][^.]*[.]\([^.]*\)' ')'
 }
 
 ## Execute a command as GITLAB_USER
@@ -93,7 +93,8 @@ update_template() {
   # Replace placeholders
   (
     export ${VARIABLES[@]}
-    local IFS=":"; envsubst "${VARIABLES[*]/#/$}" < ${tmp_file} > ${FILE}
+    local IFS=":"
+    envsubst "${VARIABLES[*]/#/$}" <${tmp_file} >${FILE}
   )
   rm -f ${tmp_file}
 }
@@ -157,24 +158,24 @@ gitlab_finalize_database_parameters() {
   # set default port number if not specified
   DB_ADAPTER=${DB_ADAPTER:-postgresql}
   case ${DB_ADAPTER} in
-    mysql2)
-      DB_ENCODING=${DB_ENCODING:-utf8}
-      DB_COLLATION=${DB_COLLATION:-utf8_general_ci}
-      DB_PORT=${DB_PORT:-3306}
-      ;;
-    postgresql)
-      DB_ENCODING=${DB_ENCODING:-unicode}
-      # DB_COLLATION: Not supported for postgresql and will be removed below.
-      DB_PORT=${DB_PORT:-5432}
-      ;;
-    *)
-      echo
-      echo "ERROR: "
-      echo "  Please specify the database type in use via the DB_ADAPTER configuration option."
-      echo "  Accepted values are \"postgresql\" or \"mysql2\". Aborting..."
-      echo
-      return 1
-      ;;
+  mysql2)
+    DB_ENCODING=${DB_ENCODING:-utf8}
+    DB_COLLATION=${DB_COLLATION:-utf8_general_ci}
+    DB_PORT=${DB_PORT:-3306}
+    ;;
+  postgresql)
+    DB_ENCODING=${DB_ENCODING:-unicode}
+    # DB_COLLATION: Not supported for postgresql and will be removed below.
+    DB_PORT=${DB_PORT:-5432}
+    ;;
+  *)
+    echo
+    echo "ERROR: "
+    echo "  Please specify the database type in use via the DB_ADAPTER configuration option."
+    echo "  Accepted values are \"postgresql\" or \"mysql2\". Aborting..."
+    echo
+    return 1
+    ;;
   esac
 
   # set default user and database
@@ -184,17 +185,16 @@ gitlab_finalize_database_parameters() {
 
 gitlab_check_database_connection() {
   case ${DB_ADAPTER} in
-    mysql2)
-      prog="mysqladmin -h ${DB_HOST} -P ${DB_PORT} -u ${DB_USER} ${DB_PASS:+-p$DB_PASS} status"
-      ;;
-    postgresql)
-      prog=$(find /usr/lib/postgresql/ -name pg_isready)
-      prog="${prog} -h ${DB_HOST} -p ${DB_PORT} -U ${DB_USER} -d ${DB_NAME} -t 1"
-      ;;
+  mysql2)
+    prog="mysqladmin -h ${DB_HOST} -P ${DB_PORT} -u ${DB_USER} ${DB_PASS:+-p$DB_PASS} status"
+    ;;
+  postgresql)
+    prog=$(find /usr/lib/postgresql/ -name pg_isready)
+    prog="${prog} -h ${DB_HOST} -p ${DB_PORT} -U ${DB_USER} -d ${DB_NAME} -t 1"
+    ;;
   esac
   timeout=60
-  while ! ${prog} >/dev/null 2>&1
-  do
+  while ! ${prog} >/dev/null 2>&1; do
     timeout=$(expr $timeout - 1)
     if [[ $timeout -eq 0 ]]; then
       echo
@@ -255,8 +255,7 @@ gitlab_finalize_redis_parameters() {
 
 gitlab_check_redis_connection() {
   timeout=60
-  while ! redis-cli -h ${REDIS_HOST} -p ${REDIS_PORT} -n ${REDIS_DB_NUMBER} ping >/dev/null 2>&1
-  do
+  while ! redis-cli -h ${REDIS_HOST} -p ${REDIS_PORT} -n ${REDIS_DB_NUMBER} ping >/dev/null 2>&1; do
     timeout=$(expr $timeout - 1)
     if [[ $timeout -eq 0 ]]; then
       echo ""
@@ -372,8 +371,8 @@ gitlab_configure_mail_delivery() {
       SMTP_OPENSSL_VERIFY_MODE
 
     case ${SMTP_AUTHENTICATION} in
-      "") sed -i "/{{SMTP_AUTHENTICATION}}/d" ${GITLAB_SMTP_CONFIG} ;;
-      *) update_template ${GITLAB_SMTP_CONFIG} SMTP_AUTHENTICATION ;;
+    "") sed -i "/{{SMTP_AUTHENTICATION}}/d" ${GITLAB_SMTP_CONFIG} ;;
+    *) update_template ${GITLAB_SMTP_CONFIG} SMTP_AUTHENTICATION ;;
     esac
 
     if [[ ${SMTP_CA_ENABLED} == true ]]; then
@@ -439,7 +438,7 @@ gitlab_configure_mailroom() {
     IMAP_TIMEOUT
 
   # enable/disable startup of mailroom
-  echo "mail_room_enabled=${GITLAB_INCOMING_EMAIL_ENABLED}" >> /etc/default/gitlab
+  echo "mail_room_enabled=${GITLAB_INCOMING_EMAIL_ENABLED}" >>/etc/default/gitlab
   update_template /etc/supervisor/conf.d/mail_room.conf GITLAB_INCOMING_EMAIL_ENABLED
 }
 
@@ -584,8 +583,8 @@ gitlab_configure_oauth_bitbucket() {
 }
 
 gitlab_configure_oauth_saml_attribute_statements() {
-  if [[ -n ${OAUTH_SAML_ATTRIBUTE_STATEMENTS_EMAIL} && \
-        -n ${OAUTH_SAML_ATTRIBUTE_STATEMENTS_NAME} ]]; then
+  if [[ -n ${OAUTH_SAML_ATTRIBUTE_STATEMENTS_EMAIL} && -n ${OAUTH_SAML_ATTRIBUTE_STATEMENTS_NAME} ]] \
+    ; then
     echo "Configuring gitlab::oauth::saml::attribute_statements..."
     update_template ${GITLAB_CONFIG} \
       OAUTH_SAML_ATTRIBUTE_STATEMENTS_EMAIL \
@@ -601,11 +600,8 @@ gitlab_configure_oauth_saml_attribute_statements() {
 }
 
 gitlab_configure_oauth_saml() {
-  if [[ -n ${OAUTH_SAML_ASSERTION_CONSUMER_SERVICE_URL} && \
-        -n ${OAUTH_SAML_IDP_CERT_FINGERPRINT} && \
-        -n ${OAUTH_SAML_IDP_SSO_TARGET_URL} && \
-        -n ${OAUTH_SAML_ISSUER} && \
-        -n ${OAUTH_SAML_NAME_IDENTIFIER_FORMAT} ]]; then
+  if [[ -n ${OAUTH_SAML_ASSERTION_CONSUMER_SERVICE_URL} && -n ${OAUTH_SAML_IDP_CERT_FINGERPRINT} && -n ${OAUTH_SAML_IDP_SSO_TARGET_URL} && -n ${OAUTH_SAML_ISSUER} && -n ${OAUTH_SAML_NAME_IDENTIFIER_FORMAT} ]] \
+    ; then
     echo "Configuring gitlab::oauth::saml..."
     OAUTH_ENABLED=${OAUTH_ENABLED:-true}
     update_template ${GITLAB_CONFIG} \
@@ -626,9 +622,8 @@ gitlab_configure_oauth_saml() {
 }
 
 gitlab_configure_oauth_crowd() {
-  if [[ -n ${OAUTH_CROWD_SERVER_URL} && \
-        -n ${OAUTH_CROWD_APP_NAME} && \
-        -n ${OAUTH_CROWD_APP_PASSWORD} ]]; then
+  if [[ -n ${OAUTH_CROWD_SERVER_URL} && -n ${OAUTH_CROWD_APP_NAME} && -n ${OAUTH_CROWD_APP_PASSWORD} ]] \
+    ; then
     echo "Configuring gitlab::oauth::crowd..."
     OAUTH_ENABLED=${OAUTH_ENABLED:-true}
     update_template ${GITLAB_CONFIG} \
@@ -641,9 +636,8 @@ gitlab_configure_oauth_crowd() {
 }
 
 gitlab_configure_oauth_auth0() {
-  if [[ -n ${OAUTH_AUTH0_CLIENT_ID} && \
-        -n ${OAUTH_AUTH0_CLIENT_SECRET} && \
-        -n ${OAUTH_AUTH0_DOMAIN} ]]; then
+  if [[ -n ${OAUTH_AUTH0_CLIENT_ID} && -n ${OAUTH_AUTH0_CLIENT_SECRET} && -n ${OAUTH_AUTH0_DOMAIN} ]] \
+    ; then
     echo "Configuring gitlab::oauth::auth0..."
     OAUTH_ENABLED=${OAUTH_ENABLED:-true}
     update_template ${GITLAB_CONFIG} \
@@ -656,9 +650,8 @@ gitlab_configure_oauth_auth0() {
 }
 
 gitlab_configure_oauth_azure() {
-  if [[ -n ${OAUTH_AZURE_API_KEY} && \
-        -n ${OAUTH_AZURE_API_SECRET} && \
-        -n ${OAUTH_AZURE_TENANT_ID} ]]; then
+  if [[ -n ${OAUTH_AZURE_API_KEY} && -n ${OAUTH_AZURE_API_SECRET} && -n ${OAUTH_AZURE_TENANT_ID} ]] \
+    ; then
     echo "Configuring gitlab::oauth::azure..."
     OAUTH_ENABLED=${OAUTH_ENABLED:-true}
     update_template ${GITLAB_CONFIG} \
@@ -696,12 +689,12 @@ gitlab_configure_oauth() {
     OAUTH_EXTERNAL_PROVIDERS
 
   case ${OAUTH_AUTO_SIGN_IN_WITH_PROVIDER} in
-    cas3|google_oauth2|facebook|twitter|github|gitlab|bitbucket|saml|crowd|azure_oauth2)
-      update_template ${GITLAB_CONFIG} OAUTH_AUTO_SIGN_IN_WITH_PROVIDER
-      ;;
-    *)
-      sed -i "/{{OAUTH_AUTO_SIGN_IN_WITH_PROVIDER}}/d" ${GITLAB_CONFIG}
-      ;;
+  cas3 | google_oauth2 | facebook | twitter | github | gitlab | bitbucket | saml | crowd | azure_oauth2)
+    update_template ${GITLAB_CONFIG} OAUTH_AUTO_SIGN_IN_WITH_PROVIDER
+    ;;
+  *)
+    sed -i "/{{OAUTH_AUTO_SIGN_IN_WITH_PROVIDER}}/d" ${GITLAB_CONFIG}
+    ;;
   esac
 }
 
@@ -729,9 +722,9 @@ gitlab_configure_secrets() {
   fi
 
   update_template ${GITLAB_SECRETS_CONFIG} \
-  GITLAB_SECRETS_DB_KEY_BASE \
-  GITLAB_SECRETS_SECRET_KEY_BASE \
-  GITLAB_SECRETS_OTP_KEY_BASE
+    GITLAB_SECRETS_DB_KEY_BASE \
+    GITLAB_SECRETS_SECRET_KEY_BASE \
+    GITLAB_SECRETS_OTP_KEY_BASE
 
   local shell_secret="${GITLAB_INSTALL_DIR}/.gitlab_shell_secret"
   if [[ ! -f "${shell_secret}" ]]; then
@@ -772,82 +765,82 @@ gitlab_configure_sidekiq() {
 
 gitlab_configure_backups_schedule() {
   case ${GITLAB_BACKUP_SCHEDULE} in
-    daily|weekly|monthly)
-      if ! crontab -u ${GITLAB_USER} -l >/tmp/cron.${GITLAB_USER} 2>/dev/null || ! grep -q 'bundle exec rake gitlab:backup:create' /tmp/cron.${GITLAB_USER}; then
-        echo "Configuring gitlab::backups::schedule..."
-        read hour min <<< ${GITLAB_BACKUP_TIME//[:]/ }
-        day_of_month=*
-        month=*
-        day_of_week=*
-        case ${GITLAB_BACKUP_SCHEDULE} in
-          daily) ;;
-          weekly) day_of_week=0 ;;
-          monthly) day_of_month=01 ;;
-        esac
-        echo "$min $hour $day_of_month $month $day_of_week /bin/bash -l -c 'cd ${GITLAB_INSTALL_DIR} && bundle exec rake gitlab:backup:create SKIP=${GITLAB_BACKUP_SKIP} RAILS_ENV=${RAILS_ENV}'" >> /tmp/cron.${GITLAB_USER}
-        crontab -u ${GITLAB_USER} /tmp/cron.${GITLAB_USER}
-      fi
-      rm -rf /tmp/cron.${GITLAB_USER}
-      ;;
+  daily | weekly | monthly)
+    if ! crontab -u ${GITLAB_USER} -l >/tmp/cron.${GITLAB_USER} 2>/dev/null || ! grep -q 'bundle exec rake gitlab:backup:create' /tmp/cron.${GITLAB_USER}; then
+      echo "Configuring gitlab::backups::schedule..."
+      read hour min <<<${GITLAB_BACKUP_TIME//[:]/ }
+      day_of_month=*
+      month=*
+      day_of_week=*
+      case ${GITLAB_BACKUP_SCHEDULE} in
+      daily) ;;
+      weekly) day_of_week=0 ;;
+      monthly) day_of_month=01 ;;
+      esac
+      echo "$min $hour $day_of_month $month $day_of_week /bin/bash -l -c 'cd ${GITLAB_INSTALL_DIR} && bundle exec rake gitlab:backup:create SKIP=${GITLAB_BACKUP_SKIP} RAILS_ENV=${RAILS_ENV}'" >>/tmp/cron.${GITLAB_USER}
+      crontab -u ${GITLAB_USER} /tmp/cron.${GITLAB_USER}
+    fi
+    rm -rf /tmp/cron.${GITLAB_USER}
+    ;;
   esac
 }
 
 gitlab_configure_backups_aws() {
-    echo "Configuring gitlab::backups::aws..."
-    sed -i "/#start-gcs/,/#end-gcs/d" ${GITLAB_CONFIG}
-    sed -i "/#start-aws/d" ${GITLAB_CONFIG}
-    sed -i "/#end-aws/d" ${GITLAB_CONFIG}
+  echo "Configuring gitlab::backups::aws..."
+  sed -i "/#start-gcs/,/#end-gcs/d" ${GITLAB_CONFIG}
+  sed -i "/#start-aws/d" ${GITLAB_CONFIG}
+  sed -i "/#end-aws/d" ${GITLAB_CONFIG}
 
-    if [[ -z ${AWS_BACKUP_MULTIPART_CHUNK_SIZE} ]]; then
-      sed -i "/#start-multipart/,/#end-multipart/d" ${GITLAB_CONFIG}
-    fi
+  if [[ -z ${AWS_BACKUP_MULTIPART_CHUNK_SIZE} ]]; then
+    sed -i "/#start-multipart/,/#end-multipart/d" ${GITLAB_CONFIG}
+  fi
 
-    if [[ -z ${AWS_BACKUP_MULTIPART_CHUNK_SIZE} ]]; then
-      sed -i "/#start-multipart-aws/,/#end-multipart-aws/d" ${GITLAB_CONFIG}
-    fi
+  if [[ -z ${AWS_BACKUP_MULTIPART_CHUNK_SIZE} ]]; then
+    sed -i "/#start-multipart-aws/,/#end-multipart-aws/d" ${GITLAB_CONFIG}
+  fi
 
-    if [[ ${AWS_BACKUP_ENCRYPTION} != true ]]; then
-      sed -i "/#start-encryption-aws/,/#end-encryption-aws/d" ${GITLAB_CONFIG}
-    fi
+  if [[ ${AWS_BACKUP_ENCRYPTION} != true ]]; then
+    sed -i "/#start-encryption-aws/,/#end-encryption-aws/d" ${GITLAB_CONFIG}
+  fi
 
-    if [[ -z ${AWS_BACKUP_REGION} && -z ${AWS_BACKUP_ENDPOINT} ]]; then
-      echo "\nMissing AWS region or endpoint. Aborting...\n"
-      return 1
-    fi
+  if [[ -z ${AWS_BACKUP_REGION} && -z ${AWS_BACKUP_ENDPOINT} ]]; then
+    echo "\nMissing AWS region or endpoint. Aborting...\n"
+    return 1
+  fi
 
-    if [[ ! -z ${AWS_BACKUP_ENDPOINT} ]]; then
-      AWS_BACKUP_PATH_STYLE="true"
-    fi
+  if [[ ! -z ${AWS_BACKUP_ENDPOINT} ]]; then
+    AWS_BACKUP_PATH_STYLE="true"
+  fi
 
-    if [[ -z ${AWS_BACKUP_ACCESS_KEY_ID} || -z ${AWS_BACKUP_SECRET_ACCESS_KEY} || -z ${AWS_BACKUP_BUCKET} ]]; then
-      echo "\nMissing AWS options. Aborting...\n"
-      return 1
-    fi
+  if [[ -z ${AWS_BACKUP_ACCESS_KEY_ID} || -z ${AWS_BACKUP_SECRET_ACCESS_KEY} || -z ${AWS_BACKUP_BUCKET} ]]; then
+    echo "\nMissing AWS options. Aborting...\n"
+    return 1
+  fi
 
-    update_template ${GITLAB_CONFIG} \
-      AWS_BACKUP_REGION \
-      AWS_BACKUP_ENDPOINT \
-      AWS_BACKUP_PATH_STYLE \
-      AWS_BACKUP_ACCESS_KEY_ID \
-      AWS_BACKUP_SECRET_ACCESS_KEY \
-      AWS_BACKUP_BUCKET \
-      AWS_BACKUP_MULTIPART_CHUNK_SIZE \
-      AWS_BACKUP_STORAGE_CLASS
+  update_template ${GITLAB_CONFIG} \
+    AWS_BACKUP_REGION \
+    AWS_BACKUP_ENDPOINT \
+    AWS_BACKUP_PATH_STYLE \
+    AWS_BACKUP_ACCESS_KEY_ID \
+    AWS_BACKUP_SECRET_ACCESS_KEY \
+    AWS_BACKUP_BUCKET \
+    AWS_BACKUP_MULTIPART_CHUNK_SIZE \
+    AWS_BACKUP_STORAGE_CLASS
 }
 
 gitlab_configure_backup_gcs() {
-    echo "Configuring gitlab::backups::gcs..."
-    sed -i "/#start-aws/,/#end-aws/d" ${GITLAB_CONFIG}
-    sed -i "/#start-gcs/d" ${GITLAB_CONFIG}
-    sed -i "/#end-gcs/d" ${GITLAB_CONFIG}
-    if [[ -z ${GCS_BACKUP_ACCESS_KEY_ID} || -z ${GCS_BACKUP_SECRET_ACCESS_KEY} || -z ${GCS_BACKUP_BUCKET} ]]; then
-      printf "\nMissing GCS options. Aborting...\n"
-      return 1
-    fi
-    update_template ${GITLAB_CONFIG} \
-      GCS_BACKUP_ACCESS_KEY_ID \
-      GCS_BACKUP_SECRET_ACCESS_KEY \
-      GCS_BACKUP_BUCKET
+  echo "Configuring gitlab::backups::gcs..."
+  sed -i "/#start-aws/,/#end-aws/d" ${GITLAB_CONFIG}
+  sed -i "/#start-gcs/d" ${GITLAB_CONFIG}
+  sed -i "/#end-gcs/d" ${GITLAB_CONFIG}
+  if [[ -z ${GCS_BACKUP_ACCESS_KEY_ID} || -z ${GCS_BACKUP_SECRET_ACCESS_KEY} || -z ${GCS_BACKUP_BUCKET} ]]; then
+    printf "\nMissing GCS options. Aborting...\n"
+    return 1
+  fi
+  update_template ${GITLAB_CONFIG} \
+    GCS_BACKUP_ACCESS_KEY_ID \
+    GCS_BACKUP_SECRET_ACCESS_KEY \
+    GCS_BACKUP_BUCKET
 }
 
 gitlab_configure_backups() {
@@ -904,7 +897,7 @@ gitlab_configure_cron_jobs() {
 
 gitlab_configure_analytics_google() {
   if [[ -n ${GOOGLE_ANALYTICS_ID} ]]; then
-  echo "Configuring gitlab::analytics:google..."
+    echo "Configuring gitlab::analytics:google..."
     update_template ${GITLAB_CONFIG} GOOGLE_ANALYTICS_ID
   else
     sed -i "/{{GOOGLE_ANALYTICS_ID}}/d" ${GITLAB_CONFIG}
@@ -962,8 +955,8 @@ gitlab_configure_artifacts() {
       GITLAB_ARTIFACTS_OBJECT_STORE_CONNECTION_AWS_HOST \
       GITLAB_ARTIFACTS_OBJECT_STORE_CONNECTION_AWS_ENDPOINT \
       GITLAB_ARTIFACTS_OBJECT_STORE_CONNECTION_AWS_PATH_STYLE
-  else 
-   sed -i -e "/path: {{GITLAB_ARTIFACTS_DIR}}/{n;N;N;N;N;N;N;N;N;N;N;N;N;d;}" ${GITLAB_CONFIG}
+  else
+    sed -i -e "/path: {{GITLAB_ARTIFACTS_DIR}}/{n;N;N;N;N;N;N;N;N;N;N;N;N;d;}" ${GITLAB_CONFIG}
   fi
 
   echo "Configuring gitlab::artifacts..."
@@ -988,8 +981,8 @@ gitlab_configure_lfs() {
       GITLAB_LFS_OBJECT_STORE_CONNECTION_AWS_HOST \
       GITLAB_LFS_OBJECT_STORE_CONNECTION_AWS_ENDPOINT \
       GITLAB_LFS_OBJECT_STORE_CONNECTION_AWS_PATH_STYLE
-  else 
-    sed -i -e "/path: {{GITLAB_LFS_OBJECTS_DIR}}/{n;N;N;N;N;N;N;N;N;N;N;N;N;N;d;}"  ${GITLAB_CONFIG}
+  else
+    sed -i -e "/path: {{GITLAB_LFS_OBJECTS_DIR}}/{n;N;N;N;N;N;N;N;N;N;N;N;N;N;d;}" ${GITLAB_CONFIG}
   fi
 
   echo "Configuring gitlab::lfs..."
@@ -1014,14 +1007,14 @@ gitlab_configure_uploads() {
       GITLAB_UPLOADS_OBJECT_STORE_CONNECTION_AWS_HOST \
       GITLAB_UPLOADS_OBJECT_STORE_CONNECTION_AWS_ENDPOINT \
       GITLAB_UPLOADS_OBJECT_STORE_CONNECTION_AWS_PATH_STYLE
-  else 
-   sed -i -e "/base_dir: {{GITLAB_UPLOADS_BASE_DIR}}/{n;N;N;N;N;N;N;N;N;N;N;N;N;N;d;}"  ${GITLAB_CONFIG}
+  else
+    sed -i -e "/base_dir: {{GITLAB_UPLOADS_BASE_DIR}}/{n;N;N;N;N;N;N;N;N;N;N;N;N;N;d;}" ${GITLAB_CONFIG}
   fi
 
   echo "Configuring gitlab::uploads..."
   update_template ${GITLAB_CONFIG} \
     GITLAB_UPLOADS_STORAGE_PATH \
-    GITLAB_UPLOADS_BASE_DIR  
+    GITLAB_UPLOADS_BASE_DIR
 }
 
 gitlab_configure_mattermost() {
@@ -1043,7 +1036,7 @@ gitlab_configure_project_features() {
     GITLAB_WEBHOOK_TIMEOUT
 }
 
-gitlab_configure_registry(){
+gitlab_configure_registry() {
   echo "Configuring gitlab::registry..."
 
   if [[ ${GITLAB_REGISTRY_PORT} == 443 ]]; then
@@ -1065,7 +1058,7 @@ gitlab_configure_registry(){
     GITLAB_REGISTRY_ISSUER
 }
 
-gitlab_configure_pages(){
+gitlab_configure_pages() {
   echo "Configuring gitlab::pages..."
   update_template ${GITLAB_CONFIG} \
     GITLAB_PAGES_ENABLED \
@@ -1088,7 +1081,6 @@ gitlab_configure_pages(){
     sed -ie "/{{GITLAB_PAGES_EXTERNAL_HTTPS}}/d" ${GITLAB_CONFIG}
   fi
 }
-
 
 nginx_configure_gitlab_ssl() {
   if [[ ${GITLAB_HTTPS} == true && -f ${SSL_CERTIFICATE_PATH} && -f ${SSL_KEY_PATH} && -f ${SSL_DHPARAM_PATH} ]]; then
@@ -1119,26 +1111,26 @@ nginx_configure_gitlab_hsts() {
   fi
 }
 
- nginx_configure_gitlab_ipv6() {
-   if [[ ! -f /proc/net/if_inet6 ]]; then
-     # disable ipv6 support in nginx for gitlab
-     sed -i \
-       -e "/listen \[::\]:80/d" \
-       -e "/listen \[::\]:443/d" \
-       ${GITLAB_NGINX_CONFIG}
-     # disable ipv6 support in nginx for pages
-     if [[ ${GITLAB_PAGES_ENABLED} == true ]]; then
-       sed -i \
-         -e "/listen \[::\]:80/d" \
-         -e "/listen \[::\]:443/d" \
-         ${GITLAB_PAGES_NGINX_CONFIG}
-     fi
-   fi
- }
+nginx_configure_gitlab_ipv6() {
+  if [[ ! -f /proc/net/if_inet6 ]]; then
+    # disable ipv6 support in nginx for gitlab
+    sed -i \
+      -e "/listen \[::\]:80/d" \
+      -e "/listen \[::\]:443/d" \
+      ${GITLAB_NGINX_CONFIG}
+    # disable ipv6 support in nginx for pages
+    if [[ ${GITLAB_PAGES_ENABLED} == true ]]; then
+      sed -i \
+        -e "/listen \[::\]:80/d" \
+        -e "/listen \[::\]:443/d" \
+        ${GITLAB_PAGES_NGINX_CONFIG}
+    fi
+  fi
+}
 
 nginx_configure_gitlab_real_ip() {
-  if [[ ${NGINX_REAL_IP_RECURSIVE} == on && \
-     -n ${NGINX_REAL_IP_TRUSTED_ADDRESSES} ]]; then
+  if [[ ${NGINX_REAL_IP_RECURSIVE} == on && -n ${NGINX_REAL_IP_TRUSTED_ADDRESSES} ]] \
+    ; then
     echo "Configuring nginx::gitlab::real_ip..."
     update_template ${GITLAB_NGINX_CONFIG} \
       NGINX_REAL_IP_RECURSIVE \
@@ -1171,7 +1163,7 @@ nginx_configure_gitlab() {
 nginx_configure_gitlab_ci() {
   if [[ -n $GITLAB_CI_HOST ]]; then
     echo "Configuring nginx::gitlab_ci..."
-    DNS_RESOLVERS=$(cat /etc/resolv.conf  | grep '^\s*nameserver' | awk '{print $2}' ORS=' ')
+    DNS_RESOLVERS=$(cat /etc/resolv.conf | grep '^\s*nameserver' | awk '{print $2}' ORS=' ')
     update_template ${GITLAB_CI_NGINX_CONFIG} \
       GITLAB_LOG_DIR \
       GITLAB_HOST \
@@ -1193,7 +1185,7 @@ nginx_configure_gitlab_registry() {
   fi
 }
 
-nginx_configure_pages(){
+nginx_configure_pages() {
   local GITLAB_PAGES_DOMAIN=$(echo $GITLAB_PAGES_DOMAIN | sed 's/\./\\\\./g')
   if [[ ${GITLAB_PAGES_ENABLED} == true ]]; then
     echo "Configuring nginx::gitlab-pages..."
@@ -1215,7 +1207,6 @@ nginx_configure_pages(){
     fi
   fi
 }
-
 
 #   _|_|_|              _|        _|  _|
 #   _|    _|  _|    _|  _|_|_|    _|        _|_|_|
@@ -1390,10 +1381,10 @@ sanitize_datadir() {
   # chmod -R u+rwX ${GITLAB_LFS_OBJECTS_DIR}
   # chown -R ${GITLAB_USER}: ${GITLAB_LFS_OBJECTS_DIR}
 
-  if [[ ${GITLAB_REGISTRY_ENABLED} == true ]]; then
-    # chmod -R u+rwX ${GITLAB_REGISTRY_DIR}
-    # chown -R ${GITLAB_USER}: ${GITLAB_REGISTRY_DIR}
-  fi
+  # if [[ ${GITLAB_REGISTRY_ENABLED} == true ]]; then
+  #   chmod -R u+rwX ${GITLAB_REGISTRY_DIR}
+  #   chown -R ${GITLAB_USER}: ${GITLAB_REGISTRY_DIR}
+  # fi
 
   # find ${GITLAB_DATA_DIR}/uploads -type f -exec chmod 0644 {} \;
   # find ${GITLAB_DATA_DIR}/uploads -type d -not -path ${GITLAB_DATA_DIR}/uploads -exec chmod 0755 {} \;
@@ -1413,10 +1404,10 @@ generate_ssh_host_keys() {
   sed -i "s|HostKey /etc/ssh/|HostKey ${GITLAB_DATA_DIR}/ssh/|g" /etc/ssh/sshd_config
   if [[ ! -e ${GITLAB_DATA_DIR}/ssh/ssh_host_rsa_key ]]; then
     echo -n "Generating OpenSSH host keys... "
-    generate_ssh_key rsa      ${GITLAB_DATA_DIR}/ssh/ssh_host_rsa_key
-    generate_ssh_key dsa      ${GITLAB_DATA_DIR}/ssh/ssh_host_dsa_key
-    generate_ssh_key ecdsa    ${GITLAB_DATA_DIR}/ssh/ssh_host_ecdsa_key
-    generate_ssh_key ed25519  ${GITLAB_DATA_DIR}/ssh/ssh_host_ed25519_key
+    generate_ssh_key rsa ${GITLAB_DATA_DIR}/ssh/ssh_host_rsa_key
+    generate_ssh_key dsa ${GITLAB_DATA_DIR}/ssh/ssh_host_dsa_key
+    generate_ssh_key ecdsa ${GITLAB_DATA_DIR}/ssh/ssh_host_ecdsa_key
+    generate_ssh_key ed25519 ${GITLAB_DATA_DIR}/ssh/ssh_host_ed25519_key
     echo
   fi
 
@@ -1449,7 +1440,7 @@ install_configuration_templates() {
     install_template ${GITLAB_USER}: gitlabhq/relative_url.rb ${GITLAB_RELATIVE_URL_CONFIG} 0644
   fi
 
-  if [[ ${SMTP_ENABLED} == true  ]]; then
+  if [[ ${SMTP_ENABLED} == true ]]; then
     install_template ${GITLAB_USER}: gitlabhq/smtp_settings.rb ${GITLAB_SMTP_CONFIG}
   fi
 
@@ -1471,7 +1462,6 @@ install_configuration_templates() {
     install_template git: nginx/gitlab ${GITLAB_NGINX_CONFIG}
   fi
 
-
   ## ${GITLAB_PAGES_NGINX_CONFIG}
   if [[ ${GITLAB_PAGES_ENABLED} == true ]]; then
     if [[ ${GITLAB_PAGES_HTTPS} == true && -f ${SSL_PAGES_CERT_PATH} && -f ${SSL_PAGES_KEY_PATH} ]]; then
@@ -1482,8 +1472,6 @@ install_configuration_templates() {
       install_template git: nginx/gitlab-pages ${GITLAB_PAGES_NGINX_CONFIG}
     fi
   fi
-
-
 
   if [[ -n $GITLAB_CI_HOST ]]; then
     install_template git: nginx/gitlab_ci ${GITLAB_CI_NGINX_CONFIG}
@@ -1519,7 +1507,7 @@ configure_gitlab() {
     GITLAB_SIGNUP_ENABLED \
     GITLAB_PROJECTS_LIMIT \
     GITLAB_USERNAME_CHANGE \
-    GITLAB_CREATE_GROUP 
+    GITLAB_CREATE_GROUP
 
   gitlab_configure_database
   gitlab_configure_redis
@@ -1567,11 +1555,10 @@ configure_gitlab_shell() {
     REDIS_DB_NUMBER
 }
 
-
 configure_gitlab_pages() {
   if [[ ${GITLAB_PAGES_ENABLED} == true ]]; then
-  echo "Configuring gitlab-pages..."
-cat > /etc/supervisor/conf.d/gitlab-pages.conf <<EOF
+    echo "Configuring gitlab-pages..."
+    cat >/etc/supervisor/conf.d/gitlab-pages.conf <<EOF
 [program:gitlab-pages]
 priority=20
 directory=${GITLAB_INSTALL_DIR}
@@ -1582,37 +1569,36 @@ command=/usr/local/bin/gitlab-pages
   -listen-proxy :8090
 EOF
 
-if [[ -n ${GITLAB_PAGES_EXTERNAL_HTTP} ]]; then
-cat >> /etc/supervisor/conf.d/gitlab-pages.conf <<EOF
+    if [[ -n ${GITLAB_PAGES_EXTERNAL_HTTP} ]]; then
+      cat >>/etc/supervisor/conf.d/gitlab-pages.conf <<EOF
   -listen-http ${GITLAB_PAGES_EXTERNAL_HTTP}
 EOF
-fi
+    fi
 
-
-if [[ -n ${GITLAB_PAGES_EXTERNAL_HTTPS} ]]; then
-cat >> /etc/supervisor/conf.d/gitlab-pages.conf <<EOF
+    if [[ -n ${GITLAB_PAGES_EXTERNAL_HTTPS} ]]; then
+      cat >>/etc/supervisor/conf.d/gitlab-pages.conf <<EOF
   -listen-https ${GITLAB_PAGES_EXTERNAL_HTTPS}
   -root-cert ${SSL_PAGES_CERT_PATH}
   -root-key ${SSL_PAGES_KEY_PATH}
 EOF
-fi
+    fi
 
-cat >> /etc/supervisor/conf.d/gitlab-pages.conf <<EOF
+    cat >>/etc/supervisor/conf.d/gitlab-pages.conf <<EOF
 user=git
 autostart=true
 autorestart=true
 stdout_logfile=${GITLAB_INSTALL_DIR}/log/%(program_name)s.log
 stderr_logfile=${GITLAB_INSTALL_DIR}/log/%(program_name)s.log
 EOF
-fi
+  fi
 }
 
 configure_nginx() {
   echo "Configuring nginx..."
   sed -i \
-  -e "s|worker_processes .*|worker_processes ${NGINX_WORKERS};|" \
-  -e "s|# server_names_hash_bucket_size 64;|server_names_hash_bucket_size ${NGINX_SERVER_NAMES_HASH_BUCKET_SIZE};|" \
-  /etc/nginx/nginx.conf
+    -e "s|worker_processes .*|worker_processes ${NGINX_WORKERS};|" \
+    -e "s|# server_names_hash_bucket_size 64;|server_names_hash_bucket_size ${NGINX_SERVER_NAMES_HASH_BUCKET_SIZE};|" \
+    /etc/nginx/nginx.conf
 
   nginx_configure_gitlab
   nginx_configure_gitlab_ci
@@ -1623,14 +1609,14 @@ configure_nginx() {
 migrate_database() {
   # run the `gitlab:setup` rake task if required
   case ${DB_ADAPTER} in
-    mysql2)
-      QUERY="SELECT count(*) FROM information_schema.tables WHERE table_schema = '${DB_NAME}';"
-      COUNT=$(mysql -h ${DB_HOST} -P ${DB_PORT} -u ${DB_USER} ${DB_PASS:+-p$DB_PASS} -ss -e "${QUERY}")
-      ;;
-    postgresql)
-      QUERY="SELECT count(*) FROM information_schema.tables WHERE table_schema = 'public';"
-      COUNT=$(PGPASSWORD="${DB_PASS}" psql -h ${DB_HOST} -p ${DB_PORT} -U ${DB_USER} -d ${DB_NAME} -Atw -c "${QUERY}")
-      ;;
+  mysql2)
+    QUERY="SELECT count(*) FROM information_schema.tables WHERE table_schema = '${DB_NAME}';"
+    COUNT=$(mysql -h ${DB_HOST} -P ${DB_PORT} -u ${DB_USER} ${DB_PASS:+-p$DB_PASS} -ss -e "${QUERY}")
+    ;;
+  postgresql)
+    QUERY="SELECT count(*) FROM information_schema.tables WHERE table_schema = 'public';"
+    COUNT=$(PGPASSWORD="${DB_PASS}" psql -h ${DB_HOST} -p ${DB_PORT} -U ${DB_USER} -d ${DB_NAME} -Atw -c "${QUERY}")
+    ;;
   esac
 
   if [[ -z ${COUNT} || ${COUNT} -eq 0 ]]; then
@@ -1675,7 +1661,7 @@ migrate_database() {
       bundle exec rake add_limits_mysql >/dev/null
     fi
 
-    echo "${GITLAB_VERSION}" > ${GITLAB_TEMP_DIR}/VERSION
+    echo "${GITLAB_VERSION}" >${GITLAB_TEMP_DIR}/VERSION
     rm -rf ${GITLAB_TEMP_DIR}/GITLAB_RELATIVE_URL_ROOT # force cache cleanup
   fi
 
@@ -1690,7 +1676,7 @@ migrate_database() {
 
     echo "Clearing cache..."
     bundle exec rake cache:clear >/dev/null 2>&1
-    echo "${GITLAB_RELATIVE_URL_ROOT}" > ${GITLAB_TEMP_DIR}/GITLAB_RELATIVE_URL_ROOT
+    echo "${GITLAB_RELATIVE_URL_ROOT}" >${GITLAB_TEMP_DIR}/GITLAB_RELATIVE_URL_ROOT
   fi
 }
 
@@ -1702,8 +1688,7 @@ execute_raketask() {
 
   if [[ ${1} == gitlab:backup:restore ]]; then
     interactive=true
-    for arg in $@
-    do
+    for arg in $@; do
       if [[ $arg == BACKUP=* ]]; then
         interactive=false
         break
@@ -1719,8 +1704,7 @@ execute_raketask() {
       fi
 
       echo
-      for b in $(ls ${GITLAB_BACKUP_DIR} | grep _gitlab_backup | sort -r)
-      do
+      for b in $(ls ${GITLAB_BACKUP_DIR} | grep _gitlab_backup | sort -r); do
         echo "‣ $b (created at $(date --date="@${b%%_gitlab_backup.tar}" +'%d %b, %G - %H:%M:%S %Z'))"
       done
       echo
