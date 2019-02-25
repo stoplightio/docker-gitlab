@@ -268,7 +268,6 @@ priority=10
 directory=${GITLAB_INSTALL_DIR}
 environment=HOME=${GITLAB_HOME}
 command=bundle exec unicorn_rails -c ${GITLAB_INSTALL_DIR}/config/unicorn.rb -E ${RAILS_ENV}
-user=git
 autostart=true
 autorestart=true
 stopsignal=QUIT
@@ -288,7 +287,6 @@ command=bundle exec sidekiq -c {{SIDEKIQ_CONCURRENCY}}
   -t {{SIDEKIQ_SHUTDOWN_TIMEOUT}}
   -P ${GITLAB_INSTALL_DIR}/tmp/pids/sidekiq.pid
   -L ${GITLAB_INSTALL_DIR}/log/sidekiq.log
-user=git
 autostart=true
 autorestart=true
 stdout_logfile=${GITLAB_LOG_DIR}/supervisor/%(program_name)s.log
@@ -309,7 +307,6 @@ command=/usr/local/bin/gitlab-workhorse
   -authSocket ${GITLAB_INSTALL_DIR}/tmp/sockets/gitlab.socket
   -documentRoot ${GITLAB_INSTALL_DIR}/public
   -proxyHeadersTimeout {{GITLAB_WORKHORSE_TIMEOUT}}
-user=git
 autostart=true
 autorestart=true
 stdout_logfile=${GITLAB_INSTALL_DIR}/log/%(program_name)s.log
@@ -323,7 +320,6 @@ priority=5
 directory=${GITLAB_GITALY_INSTALL_DIR}
 environment=HOME=${GITLAB_HOME}
 command=/usr/local/bin/gitaly ${GITLAB_GITALY_INSTALL_DIR}/config.toml
-user=git
 autostart=true
 autorestart=true
 stdout_logfile=${GITLAB_LOG_DIR}/supervisor/%(program_name)s.log
@@ -337,7 +333,6 @@ priority=20
 directory=${GITLAB_INSTALL_DIR}
 environment=HOME=${GITLAB_HOME}
 command=bundle exec mail_room -c ${GITLAB_INSTALL_DIR}/config/mail_room.yml
-user=git
 autostart={{GITLAB_INCOMING_EMAIL_ENABLED}}
 autorestart=true
 stdout_logfile=${GITLAB_INSTALL_DIR}/log/%(program_name)s.log
@@ -350,7 +345,6 @@ cat >/etc/supervisor/conf.d/nginx.conf <<EOF
 priority=20
 directory=/tmp
 command=/usr/sbin/nginx -g "daemon off;"
-user=git
 autostart=true
 autorestart=true
 stdout_logfile=${GITLAB_LOG_DIR}/supervisor/%(program_name)s.log
