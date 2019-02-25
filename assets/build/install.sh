@@ -344,39 +344,13 @@ stdout_logfile=${GITLAB_INSTALL_DIR}/log/%(program_name)s.log
 stderr_logfile=${GITLAB_INSTALL_DIR}/log/%(program_name)s.log
 EOF
 
-# configure supervisor to start sshd
-mkdir -p /var/run/sshd
-cat >/etc/supervisor/conf.d/sshd.conf <<EOF
-[program:sshd]
-directory=/
-command=/usr/sbin/sshd -D -E ${GITLAB_LOG_DIR}/supervisor/%(program_name)s.log
-user=root
-autostart=true
-autorestart=true
-stdout_logfile=${GITLAB_LOG_DIR}/supervisor/%(program_name)s.log
-stderr_logfile=${GITLAB_LOG_DIR}/supervisor/%(program_name)s.log
-EOF
-
 # configure supervisord to start nginx
 cat >/etc/supervisor/conf.d/nginx.conf <<EOF
 [program:nginx]
 priority=20
 directory=/tmp
 command=/usr/sbin/nginx -g "daemon off;"
-user=root
-autostart=true
-autorestart=true
-stdout_logfile=${GITLAB_LOG_DIR}/supervisor/%(program_name)s.log
-stderr_logfile=${GITLAB_LOG_DIR}/supervisor/%(program_name)s.log
-EOF
-
-# configure supervisord to start crond
-cat >/etc/supervisor/conf.d/cron.conf <<EOF
-[program:cron]
-priority=20
-directory=/tmp
-command=/usr/sbin/cron -f
-user=root
+user=git
 autostart=true
 autorestart=true
 stdout_logfile=${GITLAB_LOG_DIR}/supervisor/%(program_name)s.log

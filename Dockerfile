@@ -1,5 +1,5 @@
 FROM sameersbn/ubuntu:16.04.20180706
-LABEL maintainer="sameer@damagehead.com"
+LABEL maintainer="support@stoplight.io"
 
 ENV GITLAB_VERSION=11.0.6 \
      RUBY_VERSION=2.4 \
@@ -10,7 +10,7 @@ ENV GITLAB_VERSION=11.0.6 \
      GITALY_SERVER_VERSION=0.105.0 \
      GITLAB_USER="git" \
      GITLAB_HOME="/home/git" \
-     GITLAB_LOG_DIR="/var/log/gitlab" \
+     GITLAB_LOG_DIR="/home/git/logs" \
      GITLAB_CACHE_DIR="/etc/docker-gitlab" \
      RAILS_ENV=production \
      NODE_ENV=production
@@ -58,8 +58,21 @@ COPY assets/runtime/ ${GITLAB_RUNTIME_DIR}/
 COPY entrypoint.sh /sbin/entrypoint.sh
 RUN chmod 755 /sbin/entrypoint.sh
 
-EXPOSE 22/tcp 80/tcp 443/tcp
+RUN mkdir -p ${GITLAB_LOG_DIR} && chmod -R 775 ${GITLAB_LOG_DIR} && chgrp -R 0 ${GITLAB_LOG_DIR}
+RUN mkdir -p ${GITLAB_DATA_DIR} && chmod -R 775 ${GITLAB_LOG_DIR} && chgrp -R 0 ${GITLAB_DATA_DIR}
+RUN chgrp -R 0 /etc/nginx && chmod -R 775 /etc/nginx && chmod -R g=u /etc/nginx
+RUN chgrp -R 0 /var/lib/nginx && chmod -R 775 /var/lib/nginx
+RUN chgrp -R 0 /etc/supervisor && chmod -R 775 /etc/supervisor
+RUN chgrp -R 0 /etc/default && chmod -R 775 /etc/default
+COPY assets/supervisord.conf /etc/supervisor/supervisord.conf
+ENV GITLAB_PORT 8000
 
+RUN chgrp -R 0 /var/log/nginx && chmod -R 755 /var/log/nginx
+RUN sed -i 's/pid.*/pid \/tmp\/nginx.pid;/' /etc/nginx/nginx.conf
+
+EXPOSE 8000/tcp
+
+USER 1001:0
 VOLUME ["${GITLAB_DATA_DIR}", "${GITLAB_LOG_DIR}"]
 WORKDIR ${GITLAB_INSTALL_DIR}
 ENTRYPOINT ["/sbin/entrypoint.sh"]

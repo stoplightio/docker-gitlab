@@ -1,5 +1,5 @@
 #!/bin/bash
-set -e
+set -ex
 
 for file in /gitlab-configs /run/secrets/gitlab-secrets; do
 	if [[ -e "$file" ]]; then
@@ -66,8 +66,8 @@ install_template() {
   elif [[ -f ${SYSCONF_TEMPLATES_DIR}/${SRC} ]]; then
     cp ${SYSCONF_TEMPLATES_DIR}/${SRC} ${DEST}
   fi
-  chmod ${MODE} ${DEST}
-  chown ${OWNERSHIP} ${DEST}
+  #chmod ${MODE} ${DEST}
+  #chown ${OWNERSHIP} ${DEST}
 }
 
 ## Replace placeholders with values
@@ -93,7 +93,7 @@ update_template() {
   # Replace placeholders
   (
     export ${VARIABLES[@]}
-    local IFS=":"; sudo -HEu ${USR} envsubst "${VARIABLES[*]/#/$}" < ${tmp_file} > ${FILE}
+    local IFS=":"; envsubst "${VARIABLES[*]/#/$}" < ${tmp_file} > ${FILE}
   )
   rm -f ${tmp_file}
 }
@@ -225,7 +225,7 @@ gitlab_configure_database() {
     DB_POOL
 
   if [[ ${DB_ADAPTER} == postgresql ]]; then
-    exec_as_git sed -i \
+    sed -i \
       -e "/reconnect: /d" \
       -e "/collation: /d" \
       ${GITLAB_DATABASE_CONFIG}
@@ -316,7 +316,7 @@ gitlab_configure_unicorn() {
   if [[ -n ${GITLAB_RELATIVE_URL_ROOT} ]]; then
     update_template ${GITLAB_UNICORN_CONFIG} GITLAB_RELATIVE_URL_ROOT
   else
-    exec_as_git sed -i "/{{GITLAB_RELATIVE_URL_ROOT}}/d" ${GITLAB_UNICORN_CONFIG}
+    sed -i "/{{GITLAB_RELATIVE_URL_ROOT}}/d" ${GITLAB_UNICORN_CONFIG}
   fi
 
   update_template ${GITLAB_UNICORN_CONFIG} \
@@ -337,7 +337,7 @@ gitlab_configure_trusted_proxies() {
     echo "Configuring gitlab::trusted_proxies..."
     update_template ${GITLAB_CONFIG} GITLAB_TRUSTED_PROXIES
   else
-    exec_as_git sed -i "/{{GITLAB_TRUSTED_PROXIES}}/d" ${GITLAB_CONFIG}
+    sed -i "/{{GITLAB_TRUSTED_PROXIES}}/d" ${GITLAB_CONFIG}
   fi
 }
 
@@ -351,13 +351,13 @@ gitlab_configure_mail_delivery() {
     echo "Configuring gitlab::smtp_settings..."
 
     if [[ -z "${SMTP_USER}" ]]; then
-      exec_as_git sed -i \
+      sed -i \
         -e '/{{SMTP_USER}}/d' \
         -e '/{{SMTP_PASS}}/d' \
         ${GITLAB_SMTP_CONFIG}
     else
       if [[ -z "${SMTP_PASS}" ]]; then
-        exec_as_git sed -i '/{{SMTP_PASS}}/d' ${GITLAB_SMTP_CONFIG}
+        sed -i '/{{SMTP_PASS}}/d' ${GITLAB_SMTP_CONFIG}
       fi
     fi
 
@@ -372,7 +372,7 @@ gitlab_configure_mail_delivery() {
       SMTP_OPENSSL_VERIFY_MODE
 
     case ${SMTP_AUTHENTICATION} in
-      "") exec_as_git sed -i "/{{SMTP_AUTHENTICATION}}/d" ${GITLAB_SMTP_CONFIG} ;;
+      "") sed -i "/{{SMTP_AUTHENTICATION}}/d" ${GITLAB_SMTP_CONFIG} ;;
       *) update_template ${GITLAB_SMTP_CONFIG} SMTP_AUTHENTICATION ;;
     esac
 
@@ -384,7 +384,7 @@ gitlab_configure_mail_delivery() {
         update_template ${GITLAB_SMTP_CONFIG} SMTP_CA_FILE
       fi
     else
-      exec_as_git sed -i \
+      sed -i \
         -e "/{{SMTP_CA_PATH}}/d" \
         -e "/{{SMTP_CA_FILE}}/d" \
         ${GITLAB_SMTP_CONFIG}
@@ -404,17 +404,17 @@ gitlab_configure_mailroom() {
     echo "Configuring gitlab::incoming_email..."
 
     if [[ -z "${IMAP_USER}" ]]; then
-      exec_as_git sed -i \
+      sed -i \
         -e '/{{IMAP_USER}}/d' \
         -e '/{{IMAP_PASS}}/d' \
         ${GITLAB_CONFIG}
     else
       if [[ -z "${IMAP_PASS}" ]]; then
-        exec_as_git sed -i '/{{IMAP_PASS}}/d' ${GITLAB_CONFIG}
+        sed -i '/{{IMAP_PASS}}/d' ${GITLAB_CONFIG}
       fi
     fi
   else
-    exec_as_git sed -i \
+    sed -i \
       -e "/{{IMAP_USER}}/d" \
       -e "/{{IMAP_PASS}}/d" \
       -e "/{{IMAP_HOST}}/d" \
@@ -478,7 +478,7 @@ gitlab_configure_oauth_cas3() {
       OAUTH_CAS3_VALIDATE_URL \
       OAUTH_CAS3_LOGOUT_URL
   else
-    exec_as_git sed -i "/name: 'cas3'/,/{{OAUTH_CAS3_LOGOUT_URL}}/d" ${GITLAB_CONFIG}
+    sed -i "/name: 'cas3'/,/{{OAUTH_CAS3_LOGOUT_URL}}/d" ${GITLAB_CONFIG}
   fi
 }
 
@@ -493,15 +493,15 @@ gitlab_configure_oauth_google() {
         OAUTH_GOOGLE_RESTRICT_DOMAIN \
         OAUTH_GOOGLE_APPROVAL_PROMPT
     else
-      exec_as_git sed -i "/ hd\: \[{{OAUTH_GOOGLE_RESTRICT_DOMAIN}}\]/d" ${GITLAB_CONFIG}
-      exec_as_git sed -i "s/approval_prompt: '{{OAUTH_GOOGLE_APPROVAL_PROMPT}}',/approval_prompt: '{{OAUTH_GOOGLE_APPROVAL_PROMPT}}' } }/" ${GITLAB_CONFIG}
+      sed -i "/ hd\: \[{{OAUTH_GOOGLE_RESTRICT_DOMAIN}}\]/d" ${GITLAB_CONFIG}
+      sed -i "s/approval_prompt: '{{OAUTH_GOOGLE_APPROVAL_PROMPT}}',/approval_prompt: '{{OAUTH_GOOGLE_APPROVAL_PROMPT}}' } }/" ${GITLAB_CONFIG}
       update_template ${GITLAB_CONFIG} \
         OAUTH_GOOGLE_API_KEY \
         OAUTH_GOOGLE_APP_SECRET \
         OAUTH_GOOGLE_APPROVAL_PROMPT
     fi
   else
-    exec_as_git sed -i "/name: 'google_oauth2'/,/{{OAUTH_GOOGLE_RESTRICT_DOMAIN}}/d" ${GITLAB_CONFIG}
+    sed -i "/name: 'google_oauth2'/,/{{OAUTH_GOOGLE_RESTRICT_DOMAIN}}/d" ${GITLAB_CONFIG}
   fi
 }
 
@@ -513,7 +513,7 @@ gitlab_configure_oauth_facebook() {
       OAUTH_FACEBOOK_API_KEY \
       OAUTH_FACEBOOK_APP_SECRET
   else
-    exec_as_git sed -i "/name: 'facebook'/,/{{OAUTH_FACEBOOK_APP_SECRET}}/d" ${GITLAB_CONFIG}
+    sed -i "/name: 'facebook'/,/{{OAUTH_FACEBOOK_APP_SECRET}}/d" ${GITLAB_CONFIG}
   fi
 }
 
@@ -525,7 +525,7 @@ gitlab_configure_oauth_twitter() {
       OAUTH_TWITTER_API_KEY \
       OAUTH_TWITTER_APP_SECRET
   else
-    exec_as_git sed -i "/name: 'twitter'/,/{{OAUTH_TWITTER_APP_SECRET}}/d" ${GITLAB_CONFIG}
+    sed -i "/name: 'twitter'/,/{{OAUTH_TWITTER_APP_SECRET}}/d" ${GITLAB_CONFIG}
   fi
 }
 
@@ -539,7 +539,7 @@ gitlab_configure_oauth_authentiq() {
       OAUTH_AUTHENTIQ_SCOPE \
       OAUTH_AUTHENTIQ_REDIRECT_URI
   else
-    exec_as_git sed -i "/name: 'authentiq'/,/{{OAUTH_AUTHENTIQ_SCOPE}}/d" ${GITLAB_CONFIG}
+    sed -i "/name: 'authentiq'/,/{{OAUTH_AUTHENTIQ_SCOPE}}/d" ${GITLAB_CONFIG}
   fi
 }
 
@@ -554,7 +554,7 @@ gitlab_configure_oauth_github() {
       OAUTH_GITHUB_VERIFY_SSL \
       OAUTH_GITHUB_SCOPE
   else
-    exec_as_git sed -i "/name: 'github'/,/{{OAUTH_GITHUB_SCOPE}}/d" ${GITLAB_CONFIG}
+    sed -i "/name: 'github'/,/{{OAUTH_GITHUB_SCOPE}}/d" ${GITLAB_CONFIG}
   fi
 }
 
@@ -567,7 +567,7 @@ gitlab_configure_oauth_gitlab() {
       OAUTH_GITLAB_APP_SECRET \
       OAUTH_GITLAB_SCOPE
   else
-    exec_as_git sed -i "/name: 'gitlab'/,/{{OAUTH_GITLAB_SCOPE}}/d" ${GITLAB_CONFIG}
+    sed -i "/name: 'gitlab'/,/{{OAUTH_GITLAB_SCOPE}}/d" ${GITLAB_CONFIG}
   fi
 }
 
@@ -579,7 +579,7 @@ gitlab_configure_oauth_bitbucket() {
       OAUTH_BITBUCKET_API_KEY \
       OAUTH_BITBUCKET_APP_SECRET
   else
-    exec_as_git sed -i "/name: 'bitbucket'/,/{{OAUTH_BITBUCKET_APP_SECRET}}/d" ${GITLAB_CONFIG}
+    sed -i "/name: 'bitbucket'/,/{{OAUTH_BITBUCKET_APP_SECRET}}/d" ${GITLAB_CONFIG}
   fi
 }
 
@@ -593,10 +593,10 @@ gitlab_configure_oauth_saml_attribute_statements() {
       OAUTH_SAML_ATTRIBUTE_STATEMENTS_FIRST_NAME \
       OAUTH_SAML_ATTRIBUTE_STATEMENTS_LAST_NAME
     # Remove undefined optional attributes
-    exec_as_git sed -i "/first_name: \\[''\\],/d" ${GITLAB_CONFIG}
-    exec_as_git sed -i "/last_name: \\[''\\],/d" ${GITLAB_CONFIG}
+    sed -i "/first_name: \\[''\\],/d" ${GITLAB_CONFIG}
+    sed -i "/last_name: \\[''\\],/d" ${GITLAB_CONFIG}
   else
-    exec_as_git sed -i "/attribute_statements:/,/{{OAUTH_SAML_ATTRIBUTE_STATEMENTS_EMAIL}}/d" ${GITLAB_CONFIG}
+    sed -i "/attribute_statements:/,/{{OAUTH_SAML_ATTRIBUTE_STATEMENTS_EMAIL}}/d" ${GITLAB_CONFIG}
   fi
 }
 
@@ -617,11 +617,11 @@ gitlab_configure_oauth_saml() {
       OAUTH_SAML_NAME_IDENTIFIER_FORMAT \
       OAUTH_SAML_GROUPS_ATTRIBUTE \
       OAUTH_SAML_EXTERNAL_GROUPS
-    exec_as_git sed -i "/groups_attribute: '',/d" ${GITLAB_CONFIG}
-    exec_as_git sed -i "/external_groups: \\[\\],/d" ${GITLAB_CONFIG}
+    sed -i "/groups_attribute: '',/d" ${GITLAB_CONFIG}
+    sed -i "/external_groups: \\[\\],/d" ${GITLAB_CONFIG}
     gitlab_configure_oauth_saml_attribute_statements
   else
-    exec_as_git sed -i "/name: 'saml'/,/{{OAUTH_SAML_NAME_IDENTIFIER_FORMAT}}/d" ${GITLAB_CONFIG}
+    sed -i "/name: 'saml'/,/{{OAUTH_SAML_NAME_IDENTIFIER_FORMAT}}/d" ${GITLAB_CONFIG}
   fi
 }
 
@@ -636,7 +636,7 @@ gitlab_configure_oauth_crowd() {
       OAUTH_CROWD_APP_NAME \
       OAUTH_CROWD_APP_PASSWORD
   else
-    exec_as_git sed -i "/name: 'crowd'/,/{{OAUTH_CROWD_APP_PASSWORD}}/d" ${GITLAB_CONFIG}
+    sed -i "/name: 'crowd'/,/{{OAUTH_CROWD_APP_PASSWORD}}/d" ${GITLAB_CONFIG}
   fi
 }
 
@@ -651,7 +651,7 @@ gitlab_configure_oauth_auth0() {
       OAUTH_AUTH0_CLIENT_SECRET \
       OAUTH_AUTH0_DOMAIN
   else
-    exec_as_git sed -i "/name: 'auth0'/,/{{OAUTH_AUTH0_DOMAIN}}/d" ${GITLAB_CONFIG}
+    sed -i "/name: 'auth0'/,/{{OAUTH_AUTH0_DOMAIN}}/d" ${GITLAB_CONFIG}
   fi
 }
 
@@ -666,7 +666,7 @@ gitlab_configure_oauth_azure() {
       OAUTH_AZURE_API_SECRET \
       OAUTH_AZURE_TENANT_ID
   else
-    exec_as_git sed -i "/name: 'azure_oauth2'/,/{{OAUTH_AZURE_TENANT_ID}}/d" ${GITLAB_CONFIG}
+    sed -i "/name: 'azure_oauth2'/,/{{OAUTH_AZURE_TENANT_ID}}/d" ${GITLAB_CONFIG}
   fi
 }
 
@@ -700,7 +700,7 @@ gitlab_configure_oauth() {
       update_template ${GITLAB_CONFIG} OAUTH_AUTO_SIGN_IN_WITH_PROVIDER
       ;;
     *)
-      exec_as_git sed -i "/{{OAUTH_AUTO_SIGN_IN_WITH_PROVIDER}}/d" ${GITLAB_CONFIG}
+      sed -i "/{{OAUTH_AUTO_SIGN_IN_WITH_PROVIDER}}/d" ${GITLAB_CONFIG}
       ;;
   esac
 }
@@ -735,14 +735,14 @@ gitlab_configure_secrets() {
 
   local shell_secret="${GITLAB_INSTALL_DIR}/.gitlab_shell_secret"
   if [[ ! -f "${shell_secret}" ]]; then
-    exec_as_git openssl rand -hex -out "${shell_secret}" 16
-    chmod 600 "${shell_secret}"
+    openssl rand -hex -out "${shell_secret}" 16
+    # chmod 600 "${shell_secret}"
   fi
 
   local workhorse_secret="${GITLAB_INSTALL_DIR}/.gitlab_workhorse_secret"
   if [[ ! -f "${workhorse_secret}" ]]; then
-    exec_as_git openssl rand -base64 -out "${workhorse_secret}" 32
-    chmod 600 "${workhorse_secret}"
+    openssl rand -base64 -out "${workhorse_secret}" 32
+    # chmod 600 "${workhorse_secret}"
   fi
 }
 
@@ -794,20 +794,20 @@ gitlab_configure_backups_schedule() {
 
 gitlab_configure_backups_aws() {
     echo "Configuring gitlab::backups::aws..."
-    exec_as_git sed -i "/#start-gcs/,/#end-gcs/d" ${GITLAB_CONFIG}
-    exec_as_git sed -i "/#start-aws/d" ${GITLAB_CONFIG}
-    exec_as_git sed -i "/#end-aws/d" ${GITLAB_CONFIG}
+    sed -i "/#start-gcs/,/#end-gcs/d" ${GITLAB_CONFIG}
+    sed -i "/#start-aws/d" ${GITLAB_CONFIG}
+    sed -i "/#end-aws/d" ${GITLAB_CONFIG}
 
     if [[ -z ${AWS_BACKUP_MULTIPART_CHUNK_SIZE} ]]; then
-      exec_as_git sed -i "/#start-multipart/,/#end-multipart/d" ${GITLAB_CONFIG}
+      sed -i "/#start-multipart/,/#end-multipart/d" ${GITLAB_CONFIG}
     fi
 
     if [[ -z ${AWS_BACKUP_MULTIPART_CHUNK_SIZE} ]]; then
-      exec_as_git sed -i "/#start-multipart-aws/,/#end-multipart-aws/d" ${GITLAB_CONFIG}
+      sed -i "/#start-multipart-aws/,/#end-multipart-aws/d" ${GITLAB_CONFIG}
     fi
 
     if [[ ${AWS_BACKUP_ENCRYPTION} != true ]]; then
-      exec_as_git sed -i "/#start-encryption-aws/,/#end-encryption-aws/d" ${GITLAB_CONFIG}
+      sed -i "/#start-encryption-aws/,/#end-encryption-aws/d" ${GITLAB_CONFIG}
     fi
 
     if [[ -z ${AWS_BACKUP_REGION} && -z ${AWS_BACKUP_ENDPOINT} ]]; then
@@ -837,9 +837,9 @@ gitlab_configure_backups_aws() {
 
 gitlab_configure_backup_gcs() {
     echo "Configuring gitlab::backups::gcs..."
-    exec_as_git sed -i "/#start-aws/,/#end-aws/d" ${GITLAB_CONFIG}
-    exec_as_git sed -i "/#start-gcs/d" ${GITLAB_CONFIG}
-    exec_as_git sed -i "/#end-gcs/d" ${GITLAB_CONFIG}
+    sed -i "/#start-aws/,/#end-aws/d" ${GITLAB_CONFIG}
+    sed -i "/#start-gcs/d" ${GITLAB_CONFIG}
+    sed -i "/#end-gcs/d" ${GITLAB_CONFIG}
     if [[ -z ${GCS_BACKUP_ACCESS_KEY_ID} || -z ${GCS_BACKUP_SECRET_ACCESS_KEY} || -z ${GCS_BACKUP_BUCKET} ]]; then
       printf "\nMissing GCS options. Aborting...\n"
       return 1
@@ -859,7 +859,7 @@ gitlab_configure_backups() {
     GITLAB_BACKUP_ARCHIVE_PERMISSIONS
   gitlab_configure_backups_schedule
   if [[ ${AWS_BACKUPS} != true && ${GCS_BACKUPS} != true ]]; then
-    exec_as_git sed -i "/upload:/,/#end-gcs/d" ${GITLAB_CONFIG}
+    sed -i "/upload:/,/#end-gcs/d" ${GITLAB_CONFIG}
     return 0
   fi
   if [[ ${AWS_BACKUPS} == true && ${GCS_BACKUPS} == true ]]; then
@@ -881,14 +881,14 @@ gitlab_configure_gravatar() {
     echo "Configuring gitlab::gravatar::http..."
     update_template ${GITLAB_CONFIG} GITLAB_GRAVATAR_HTTP_URL
   else
-    exec_as_git sed -i "/{{GITLAB_GRAVATAR_HTTP_URL}}/d" ${GITLAB_CONFIG}
+    sed -i "/{{GITLAB_GRAVATAR_HTTP_URL}}/d" ${GITLAB_CONFIG}
   fi
 
   if [[ -n ${GITLAB_GRAVATAR_HTTPS_URL} ]]; then
     echo "Configuring gitlab::gravatar::https..."
     update_template ${GITLAB_CONFIG} GITLAB_GRAVATAR_HTTPS_URL
   else
-    exec_as_git sed -i "/{{GITLAB_GRAVATAR_HTTPS_URL}}/d" ${GITLAB_CONFIG}
+    sed -i "/{{GITLAB_GRAVATAR_HTTPS_URL}}/d" ${GITLAB_CONFIG}
   fi
 }
 
@@ -898,7 +898,7 @@ gitlab_configure_cron_jobs() {
   if [[ -n "${GITLAB_PIPELINE_SCHEDULE_WORKER_CRON}" ]]; then
     update_template ${GITLAB_CONFIG} GITLAB_PIPELINE_SCHEDULE_WORKER_CRON
   else
-    exec_as_git sed -i "/{{GITLAB_PIPELINE_SCHEDULE_WORKER_CRON}}/d" ${GITLAB_CONFIG}
+    sed -i "/{{GITLAB_PIPELINE_SCHEDULE_WORKER_CRON}}/d" ${GITLAB_CONFIG}
   fi
 }
 
@@ -907,7 +907,7 @@ gitlab_configure_analytics_google() {
   echo "Configuring gitlab::analytics:google..."
     update_template ${GITLAB_CONFIG} GOOGLE_ANALYTICS_ID
   else
-    exec_as_git sed -i "/{{GOOGLE_ANALYTICS_ID}}/d" ${GITLAB_CONFIG}
+    sed -i "/{{GOOGLE_ANALYTICS_ID}}/d" ${GITLAB_CONFIG}
   fi
 }
 
@@ -918,7 +918,7 @@ gitlab_configure_analytics_piwik() {
       PIWIK_URL \
       PIWIK_SITE_ID
   else
-    exec_as_git sed -i \
+    sed -i \
       -e "/{{PIWIK_URL}}/d" \
       -e "/{{PIWIK_SITE_ID}}/d" \
       ${GITLAB_CONFIG}
@@ -963,7 +963,7 @@ gitlab_configure_artifacts() {
       GITLAB_ARTIFACTS_OBJECT_STORE_CONNECTION_AWS_ENDPOINT \
       GITLAB_ARTIFACTS_OBJECT_STORE_CONNECTION_AWS_PATH_STYLE
   else 
-   exec_as_git sed -i -e "/path: {{GITLAB_ARTIFACTS_DIR}}/{n;N;N;N;N;N;N;N;N;N;N;N;N;d;}" ${GITLAB_CONFIG}
+   sed -i -e "/path: {{GITLAB_ARTIFACTS_DIR}}/{n;N;N;N;N;N;N;N;N;N;N;N;N;d;}" ${GITLAB_CONFIG}
   fi
 
   echo "Configuring gitlab::artifacts..."
@@ -989,7 +989,7 @@ gitlab_configure_lfs() {
       GITLAB_LFS_OBJECT_STORE_CONNECTION_AWS_ENDPOINT \
       GITLAB_LFS_OBJECT_STORE_CONNECTION_AWS_PATH_STYLE
   else 
-    exec_as_git sed -i -e "/path: {{GITLAB_LFS_OBJECTS_DIR}}/{n;N;N;N;N;N;N;N;N;N;N;N;N;N;d;}"  ${GITLAB_CONFIG}
+    sed -i -e "/path: {{GITLAB_LFS_OBJECTS_DIR}}/{n;N;N;N;N;N;N;N;N;N;N;N;N;N;d;}"  ${GITLAB_CONFIG}
   fi
 
   echo "Configuring gitlab::lfs..."
@@ -1015,7 +1015,7 @@ gitlab_configure_uploads() {
       GITLAB_UPLOADS_OBJECT_STORE_CONNECTION_AWS_ENDPOINT \
       GITLAB_UPLOADS_OBJECT_STORE_CONNECTION_AWS_PATH_STYLE
   else 
-   exec_as_git sed -i -e "/base_dir: {{GITLAB_UPLOADS_BASE_DIR}}/{n;N;N;N;N;N;N;N;N;N;N;N;N;N;d;}"  ${GITLAB_CONFIG}
+   sed -i -e "/base_dir: {{GITLAB_UPLOADS_BASE_DIR}}/{n;N;N;N;N;N;N;N;N;N;N;N;N;N;d;}"  ${GITLAB_CONFIG}
   fi
 
   echo "Configuring gitlab::uploads..."
@@ -1078,14 +1078,14 @@ gitlab_configure_pages(){
     update_template ${GITLAB_CONFIG} \
       GITLAB_PAGES_EXTERNAL_HTTP
   else
-    exec_as_git sed -ie "/{{GITLAB_PAGES_EXTERNAL_HTTP}}/d" ${GITLAB_CONFIG}
+    sed -ie "/{{GITLAB_PAGES_EXTERNAL_HTTP}}/d" ${GITLAB_CONFIG}
   fi
 
   if [[ -n ${GITLAB_PAGES_EXTERNAL_HTTPS} ]]; then
     update_template ${GITLAB_CONFIG} \
       GITLAB_PAGES_EXTERNAL_HTTPS
   else
-    exec_as_git sed -ie "/{{GITLAB_PAGES_EXTERNAL_HTTPS}}/d" ${GITLAB_CONFIG}
+    sed -ie "/{{GITLAB_PAGES_EXTERNAL_HTTPS}}/d" ${GITLAB_CONFIG}
   fi
 }
 
@@ -1249,41 +1249,41 @@ update_ca_certificates() {
 initialize_logdir() {
   echo "Initializing logdir..."
   mkdir -p ${GITLAB_LOG_DIR}/supervisor
-  chmod -R 0755 ${GITLAB_LOG_DIR}/supervisor
-  chown -R root: ${GITLAB_LOG_DIR}/supervisor
+  # chmod -R 0755 ${GITLAB_LOG_DIR}/supervisor
+  # chown -R ${GITLAB_USER}: ${GITLAB_LOG_DIR}/supervisor
 
   mkdir -p ${GITLAB_LOG_DIR}/nginx
-  chmod -R 0755 ${GITLAB_LOG_DIR}/nginx
-  chown -R ${GITLAB_USER}: ${GITLAB_LOG_DIR}/nginx
+  # chmod -R 0755 ${GITLAB_LOG_DIR}/nginx
+  # chown -R ${GITLAB_USER}: ${GITLAB_LOG_DIR}/nginx
 
   mkdir -p ${GITLAB_LOG_DIR}/gitlab
-  chmod -R 0755 ${GITLAB_LOG_DIR}/gitlab
-  chown -R ${GITLAB_USER}: ${GITLAB_LOG_DIR}/gitlab
+  # chmod -R 0755 ${GITLAB_LOG_DIR}/gitlab
+  # chown -R ${GITLAB_USER}: ${GITLAB_LOG_DIR}/gitlab
 
   mkdir -p ${GITLAB_LOG_DIR}/gitlab-shell
-  chmod -R 0755 ${GITLAB_LOG_DIR}/gitlab-shell
-  chown -R ${GITLAB_USER}: ${GITLAB_LOG_DIR}/gitlab-shell
+  # chmod -R 0755 ${GITLAB_LOG_DIR}/gitlab-shell
+  # chown -R ${GITLAB_USER}: ${GITLAB_LOG_DIR}/gitlab-shell
 }
 
 initialize_datadir() {
   echo "Initializing datadir..."
-  chmod 755 ${GITLAB_DATA_DIR}
-  chown ${GITLAB_USER}: ${GITLAB_DATA_DIR}
+  # chmod 755 ${GITLAB_DATA_DIR}
+  # chown ${GITLAB_USER}: ${GITLAB_DATA_DIR}
 
   # create the ssh directory for server keys
   mkdir -p ${GITLAB_DATA_DIR}/ssh
-  chown -R root: ${GITLAB_DATA_DIR}/ssh
+  # chown -R git: ${GITLAB_DATA_DIR}/ssh
 
   # create the repositories directory and make sure it has the right permissions
   mkdir -p ${GITLAB_REPOS_DIR}
-  chown ${GITLAB_USER}: ${GITLAB_REPOS_DIR}
-  chmod ug+rwX,o-rwx ${GITLAB_REPOS_DIR}
-  exec_as_git chmod g+s ${GITLAB_REPOS_DIR}
+  # chown ${GITLAB_USER}: ${GITLAB_REPOS_DIR}
+  # chmod ug+rwX,o-rwx ${GITLAB_REPOS_DIR}
+  # chmod g+s ${GITLAB_REPOS_DIR}
 
   # create build traces directory
   mkdir -p ${GITLAB_BUILDS_DIR}
-  chmod u+rwX ${GITLAB_BUILDS_DIR}
-  chown ${GITLAB_USER}: ${GITLAB_BUILDS_DIR}
+  # chmod u+rwX ${GITLAB_BUILDS_DIR}
+  # chown ${GITLAB_USER}: ${GITLAB_BUILDS_DIR}
 
   # gitlab:backup:create does not respect the builds_path configuration, so we
   # symlink ${GITLAB_INSTALL_DIR}/builds -> ${GITLAB_BUILDS_DIR}
@@ -1292,23 +1292,23 @@ initialize_datadir() {
 
   # create downloads directory
   mkdir -p ${GITLAB_DOWNLOADS_DIR}
-  chmod u+rwX ${GITLAB_DOWNLOADS_DIR}
-  chown ${GITLAB_USER}: ${GITLAB_DOWNLOADS_DIR}
+  # chmod u+rwX ${GITLAB_DOWNLOADS_DIR}
+  # chown ${GITLAB_USER}: ${GITLAB_DOWNLOADS_DIR}
 
   # create shared directory
   mkdir -p ${GITLAB_SHARED_DIR}
-  chmod u+rwX ${GITLAB_SHARED_DIR}
-  chown ${GITLAB_USER}: ${GITLAB_SHARED_DIR}
+  # chmod u+rwX ${GITLAB_SHARED_DIR}
+  # chown ${GITLAB_USER}: ${GITLAB_SHARED_DIR}
 
   # create attifacts dir
   mkdir -p ${GITLAB_ARTIFACTS_DIR}
-  chmod u+rwX ${GITLAB_ARTIFACTS_DIR}
-  chown ${GITLAB_USER}: ${GITLAB_ARTIFACTS_DIR}
+  # chmod u+rwX ${GITLAB_ARTIFACTS_DIR}
+  # chown ${GITLAB_USER}: ${GITLAB_ARTIFACTS_DIR}
 
   # create pages dir
   mkdir -p ${GITLAB_PAGES_DIR}
-  chmod u+rwX ${GITLAB_PAGES_DIR}
-  chown ${GITLAB_USER}: ${GITLAB_PAGES_DIR}
+  # chmod u+rwX ${GITLAB_PAGES_DIR}
+  # chown ${GITLAB_USER}: ${GITLAB_PAGES_DIR}
 
   # symlink ${GITLAB_INSTALL_DIR}/shared -> ${GITLAB_DATA_DIR}/shared
   rm -rf ${GITLAB_INSTALL_DIR}/shared
@@ -1316,92 +1316,92 @@ initialize_datadir() {
 
   # create lfs-objects directory
   mkdir -p ${GITLAB_LFS_OBJECTS_DIR}
-  chmod u+rwX ${GITLAB_LFS_OBJECTS_DIR}
-  chown ${GITLAB_USER}: ${GITLAB_LFS_OBJECTS_DIR}
+  # chmod u+rwX ${GITLAB_LFS_OBJECTS_DIR}
+  # chown ${GITLAB_USER}: ${GITLAB_LFS_OBJECTS_DIR}
 
   # create registry dir
   if [[ ${GITLAB_REGISTRY_ENABLED} == true ]]; then
     mkdir -p ${GITLAB_REGISTRY_DIR}
-    chmod u+rwX ${GITLAB_REGISTRY_DIR}
-    chown ${GITLAB_USER}: ${GITLAB_REGISTRY_DIR}
+    # chmod u+rwX ${GITLAB_REGISTRY_DIR}
+    # chown ${GITLAB_USER}: ${GITLAB_REGISTRY_DIR}
   fi
 
   # create the backups directory
   mkdir -p ${GITLAB_BACKUP_DIR}
-  chown ${GITLAB_USER}: ${GITLAB_BACKUP_DIR}
+  # chown ${GITLAB_USER}: ${GITLAB_BACKUP_DIR}
 
   # create the uploads directory
   mkdir -p ${GITLAB_DATA_DIR}/uploads
-  chmod 0700 ${GITLAB_DATA_DIR}/uploads
-  chown ${GITLAB_USER}: ${GITLAB_DATA_DIR}/uploads
+  # chmod 0700 ${GITLAB_DATA_DIR}/uploads
+  # chown ${GITLAB_USER}: ${GITLAB_DATA_DIR}/uploads
 
   # create the .ssh directory
   mkdir -p ${GITLAB_DATA_DIR}/.ssh
   touch ${GITLAB_DATA_DIR}/.ssh/authorized_keys
-  chmod 700 ${GITLAB_DATA_DIR}/.ssh
-  chmod 600 ${GITLAB_DATA_DIR}/.ssh/authorized_keys
-  chown -R ${GITLAB_USER}: ${GITLAB_DATA_DIR}/.ssh
+  # chmod 700 ${GITLAB_DATA_DIR}/.ssh
+  # chmod 600 ${GITLAB_DATA_DIR}/.ssh/authorized_keys
+  # chown -R ${GITLAB_USER}: ${GITLAB_DATA_DIR}/.ssh
 
   # recompile and persist assets when relative_url is in use
   if [[ -n ${GITLAB_RELATIVE_URL_ROOT} ]]; then
     mkdir -p ${GITLAB_TEMP_DIR}/cache
-    chmod 755 ${GITLAB_TEMP_DIR}/cache
-    chown ${GITLAB_USER}: ${GITLAB_TEMP_DIR}/cache
+    # chmod 755 ${GITLAB_TEMP_DIR}/cache
+    # chown ${GITLAB_USER}: ${GITLAB_TEMP_DIR}/cache
 
     mkdir -p ${GITLAB_TEMP_DIR}/assets
-    chmod 755 ${GITLAB_TEMP_DIR}/assets
-    chown ${GITLAB_USER}: ${GITLAB_TEMP_DIR}/assets
+    # chmod 755 ${GITLAB_TEMP_DIR}/assets
+    # chown ${GITLAB_USER}: ${GITLAB_TEMP_DIR}/assets
 
     # symlink ${GITLAB_INSTALL_DIR}/tmp/cache -> ${GITLAB_TEMP_DIR}/cache
     rm -rf ${GITLAB_INSTALL_DIR}/tmp/cache
-    exec_as_git ln -s ${GITLAB_TEMP_DIR}/cache ${GITLAB_INSTALL_DIR}/tmp/cache
+    ln -s ${GITLAB_TEMP_DIR}/cache ${GITLAB_INSTALL_DIR}/tmp/cache
 
     # symlink ${GITLAB_INSTALL_DIR}/public/assets -> ${GITLAB_TEMP_DIR}/assets
     rm -rf ${GITLAB_INSTALL_DIR}/public/assets
-    exec_as_git ln -s ${GITLAB_TEMP_DIR}/assets ${GITLAB_INSTALL_DIR}/public/assets
+    ln -s ${GITLAB_TEMP_DIR}/assets ${GITLAB_INSTALL_DIR}/public/assets
   fi
 }
 
 sanitize_datadir() {
   echo "Sanitizing datadir. Please be patient..."
-  chmod -R ug+rwX,o-rwx ${GITLAB_REPOS_DIR}/
-  chmod -R ug-s ${GITLAB_REPOS_DIR}/
-  find ${GITLAB_REPOS_DIR}/ -type d -print0 | xargs -0 chmod g+s
-  chown -R ${GITLAB_USER}: ${GITLAB_REPOS_DIR}
+  # chmod -R ug+rwX,o-rwx ${GITLAB_REPOS_DIR}/
+  # chmod -R ug-s ${GITLAB_REPOS_DIR}/
+  # find ${GITLAB_REPOS_DIR}/ -type d -print0 | xargs -0 chmod g+s
+  # chown -R ${GITLAB_USER}: ${GITLAB_REPOS_DIR}
 
-  chmod -R u+rwX ${GITLAB_BUILDS_DIR}
-  chown -R ${GITLAB_USER}: ${GITLAB_BUILDS_DIR}
+  # chmod -R u+rwX ${GITLAB_BUILDS_DIR}
+  # chown -R ${GITLAB_USER}: ${GITLAB_BUILDS_DIR}
 
-  chmod -R u+rwX ${GITLAB_DOWNLOADS_DIR}
-  chown -R ${GITLAB_USER}: ${GITLAB_DOWNLOADS_DIR}
+  # chmod -R u+rwX ${GITLAB_DOWNLOADS_DIR}
+  # chown -R ${GITLAB_USER}: ${GITLAB_DOWNLOADS_DIR}
 
-  chmod -R u+rwX ${GITLAB_TEMP_DIR}
-  chown -R ${GITLAB_USER}: ${GITLAB_TEMP_DIR}
+  # chmod -R u+rwX ${GITLAB_TEMP_DIR}
+  # chown -R ${GITLAB_USER}: ${GITLAB_TEMP_DIR}
 
-  chmod -R u+rwX ${GITLAB_SHARED_DIR}
-  chown -R ${GITLAB_USER}: ${GITLAB_SHARED_DIR}
+  # chmod -R u+rwX ${GITLAB_SHARED_DIR}
+  # chown -R ${GITLAB_USER}: ${GITLAB_SHARED_DIR}
 
-  chmod -R u+rwX ${GITLAB_ARTIFACTS_DIR}
-  chown -R ${GITLAB_USER}: ${GITLAB_ARTIFACTS_DIR}
+  # chmod -R u+rwX ${GITLAB_ARTIFACTS_DIR}
+  # chown -R ${GITLAB_USER}: ${GITLAB_ARTIFACTS_DIR}
 
-  chmod -R u+rwX ${GITLAB_PAGES_DIR}
-  chown -R ${GITLAB_USER}: ${GITLAB_PAGES_DIR}
+  # chmod -R u+rwX ${GITLAB_PAGES_DIR}
+  # chown -R ${GITLAB_USER}: ${GITLAB_PAGES_DIR}
 
-  chmod -R u+rwX ${GITLAB_LFS_OBJECTS_DIR}
-  chown -R ${GITLAB_USER}: ${GITLAB_LFS_OBJECTS_DIR}
+  # chmod -R u+rwX ${GITLAB_LFS_OBJECTS_DIR}
+  # chown -R ${GITLAB_USER}: ${GITLAB_LFS_OBJECTS_DIR}
 
   if [[ ${GITLAB_REGISTRY_ENABLED} == true ]]; then
-    chmod -R u+rwX ${GITLAB_REGISTRY_DIR}
-    chown -R ${GITLAB_USER}: ${GITLAB_REGISTRY_DIR}
+    # chmod -R u+rwX ${GITLAB_REGISTRY_DIR}
+    # chown -R ${GITLAB_USER}: ${GITLAB_REGISTRY_DIR}
   fi
 
-  find ${GITLAB_DATA_DIR}/uploads -type f -exec chmod 0644 {} \;
-  find ${GITLAB_DATA_DIR}/uploads -type d -not -path ${GITLAB_DATA_DIR}/uploads -exec chmod 0755 {} \;
-  chmod 0700 ${GITLAB_DATA_DIR}/uploads/
-  chown ${GITLAB_USER}: ${GITLAB_DATA_DIR}/uploads/
+  # find ${GITLAB_DATA_DIR}/uploads -type f -exec chmod 0644 {} \;
+  # find ${GITLAB_DATA_DIR}/uploads -type d -not -path ${GITLAB_DATA_DIR}/uploads -exec chmod 0755 {} \;
+  # chmod 0700 ${GITLAB_DATA_DIR}/uploads/
+  # chown ${GITLAB_USER}: ${GITLAB_DATA_DIR}/uploads/
 
   echo "Creating gitlab-shell hooks..."
-  exec_as_git ${GITLAB_SHELL_INSTALL_DIR}/bin/create-hooks
+  ${GITLAB_SHELL_INSTALL_DIR}/bin/create-hooks
 }
 
 generate_ssh_key() {
@@ -1421,8 +1421,8 @@ generate_ssh_host_keys() {
   fi
 
   # ensure existing host keys have the right permissions
-  chmod 0600 ${GITLAB_DATA_DIR}/ssh/*_key
-  chmod 0644 ${GITLAB_DATA_DIR}/ssh/*.pub
+  # chmod 0600 ${GITLAB_DATA_DIR}/ssh/*_key
+  # chmod 0644 ${GITLAB_DATA_DIR}/ssh/*.pub
 }
 
 initialize_system() {
@@ -1430,7 +1430,7 @@ initialize_system() {
   initialize_logdir
   initialize_datadir
   update_ca_certificates
-  generate_ssh_host_keys
+  #generate_ssh_host_keys
   install_configuration_templates
   rm -rf /var/run/supervisor.sock
 }
@@ -1455,43 +1455,43 @@ install_configuration_templates() {
 
   # custom user specified robots.txt
   if [[ -f ${GITLAB_ROBOTS_PATH} ]]; then
-    exec_as_git cp ${GITLAB_ROBOTS_PATH} ${GITLAB_ROBOTS_CONFIG}
+    cp ${GITLAB_ROBOTS_PATH} ${GITLAB_ROBOTS_CONFIG}
   fi
 
   ## ${GITLAB_NGINX_CONFIG}
   if [[ ${GITLAB_HTTPS} == true ]]; then
     if [[ -f ${SSL_CERTIFICATE_PATH} && -f ${SSL_KEY_PATH} && -f ${SSL_DHPARAM_PATH} ]]; then
-      install_template root: nginx/gitlab-ssl ${GITLAB_NGINX_CONFIG}
+      install_template git: nginx/gitlab-ssl ${GITLAB_NGINX_CONFIG}
     else
       echo "SSL Key, SSL Certificate and DHParam were not found."
       echo "Assuming that the container is running behind a HTTPS enabled load balancer."
-      install_template root: nginx/gitlab ${GITLAB_NGINX_CONFIG}
+      install_template git: nginx/gitlab ${GITLAB_NGINX_CONFIG}
     fi
   else
-    install_template root: nginx/gitlab ${GITLAB_NGINX_CONFIG}
+    install_template git: nginx/gitlab ${GITLAB_NGINX_CONFIG}
   fi
 
 
   ## ${GITLAB_PAGES_NGINX_CONFIG}
   if [[ ${GITLAB_PAGES_ENABLED} == true ]]; then
     if [[ ${GITLAB_PAGES_HTTPS} == true && -f ${SSL_PAGES_CERT_PATH} && -f ${SSL_PAGES_KEY_PATH} ]]; then
-      install_template root: nginx/gitlab-pages-ssl ${GITLAB_PAGES_NGINX_CONFIG}
+      install_template git: nginx/gitlab-pages-ssl ${GITLAB_PAGES_NGINX_CONFIG}
     else
       echo "SSL Key, SSL Certificate were not found."
       echo "Assuming that the container is running behind a HTTPS enabled load balancer."
-      install_template root: nginx/gitlab-pages ${GITLAB_PAGES_NGINX_CONFIG}
+      install_template git: nginx/gitlab-pages ${GITLAB_PAGES_NGINX_CONFIG}
     fi
   fi
 
 
 
   if [[ -n $GITLAB_CI_HOST ]]; then
-    install_template root: nginx/gitlab_ci ${GITLAB_CI_NGINX_CONFIG}
+    install_template git: nginx/gitlab_ci ${GITLAB_CI_NGINX_CONFIG}
   fi
 
   if [[ ${GITLAB_REGISTRY_ENABLED} == true ]]; then
     if [[ -f ${SSL_REGISTRY_CERT_PATH} && -f ${SSL_REGISTRY_KEY_PATH} ]]; then
-      install_template root: nginx/gitlab-registry ${GITLAB_REGISTRY_NGINX_CONFIG}
+      install_template git: nginx/gitlab-registry ${GITLAB_REGISTRY_NGINX_CONFIG}
     else
       echo "SSL key and certificates for Registry were not found"
       echo "Assuming that the Registry is running behind a HTTPS enabled load balancer."
@@ -1635,7 +1635,7 @@ migrate_database() {
 
   if [[ -z ${COUNT} || ${COUNT} -eq 0 ]]; then
     echo "Setting up GitLab for firstrun. Please be patient, this could take a while..."
-    exec_as_git force=yes bundle exec rake gitlab:setup \
+    force=yes bundle exec rake gitlab:setup \
       ${GITLAB_ROOT_PASSWORD:+GITLAB_ROOT_PASSWORD=$GITLAB_ROOT_PASSWORD} \
       ${GITLAB_ROOT_EMAIL:+GITLAB_ROOT_EMAIL=$GITLAB_ROOT_EMAIL} >/dev/null
   fi
@@ -1669,10 +1669,10 @@ migrate_database() {
     fi
 
     echo "Migrating database..."
-    exec_as_git bundle exec rake db:migrate >/dev/null
+    bundle exec rake db:migrate >/dev/null
 
     if [[ ${DB_ADAPTER} == mysql2 ]]; then
-      exec_as_git bundle exec rake add_limits_mysql >/dev/null
+      bundle exec rake add_limits_mysql >/dev/null
     fi
 
     echo "${GITLAB_VERSION}" > ${GITLAB_TEMP_DIR}/VERSION
@@ -1685,11 +1685,11 @@ migrate_database() {
     # assets need to be recompiled when GITLAB_RELATIVE_URL_ROOT is used
     if [[ -n ${GITLAB_RELATIVE_URL_ROOT} ]]; then
       echo "Recompiling assets (relative_url in use), this could take a while..."
-      exec_as_git bundle exec rake gitlab:assets:compile >/dev/null 2>&1
+      bundle exec rake gitlab:assets:compile >/dev/null 2>&1
     fi
 
     echo "Clearing cache..."
-    exec_as_git bundle exec rake cache:clear >/dev/null 2>&1
+    bundle exec rake cache:clear >/dev/null 2>&1
     echo "${GITLAB_RELATIVE_URL_ROOT}" > ${GITLAB_TEMP_DIR}/GITLAB_RELATIVE_URL_ROOT
   fi
 }
@@ -1744,5 +1744,5 @@ execute_raketask() {
     sanitize_datadir
   fi
   echo "Running raketask ${1}..."
-  exec_as_git bundle exec rake $@ ${BACKUP:+BACKUP=$BACKUP}
+  bundle exec rake $@ ${BACKUP:+BACKUP=$BACKUP}
 }
