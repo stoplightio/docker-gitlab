@@ -60,7 +60,7 @@ RUN chmod 755 /sbin/entrypoint.sh
 
 RUN mkdir -p ${GITLAB_LOG_DIR} && chmod -R 775 ${GITLAB_LOG_DIR} && chgrp -R 0 ${GITLAB_LOG_DIR}
 RUN mkdir -p ${GITLAB_DATA_DIR} && chmod -R 775 ${GITLAB_LOG_DIR} && chgrp -R 0 ${GITLAB_DATA_DIR}
-RUN RUN chgrp -R 0 ${GITLAB_HOME} && chmod -R 775 ${GITLAB_HOME}
+RUN chgrp -R 0 ${GITLAB_HOME} && chmod -R 775 ${GITLAB_HOME}
 RUN chgrp -R 0 /etc/nginx && chmod -R 775 /etc/nginx && chmod -R g=u /etc/nginx
 RUN chgrp -R 0 /var/lib/nginx && chmod -R 775 /var/lib/nginx
 RUN chgrp -R 0 /etc/supervisor && chmod -R 775 /etc/supervisor
