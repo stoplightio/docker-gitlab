@@ -68,6 +68,7 @@ RUN chgrp -R 0 /etc/supervisor && chmod -R 775 /etc/supervisor
 RUN chgrp -R 0 /etc/default && chmod -R 775 /etc/default
 COPY assets/supervisord.conf /etc/supervisor/supervisord.conf
 ENV GITLAB_PORT 8000
+RUN sed -i 's/-g "daemon off;"/-g "daemon off;" -g "error_log stderr;"/g' /etc/supervisor/conf.d/nginx.conf
 
 RUN chgrp -R 0 /var/log/nginx && chmod -R 755 /var/log/nginx
 RUN sed -i 's/pid.*/pid \/tmp\/nginx.pid;/' /etc/nginx/nginx.conf
