@@ -1,5 +1,5 @@
 #!/bin/bash
-set -ex
+set -e
 
 for file in /gitlab-configs /run/secrets/gitlab-secrets; do
   if [[ -e "$file" ]]; then
