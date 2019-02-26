@@ -63,6 +63,7 @@ RUN mkdir -p ${GITLAB_DATA_DIR} && chmod -R 775 ${GITLAB_LOG_DIR} && chgrp -R 0 
 RUN chgrp -R 0 ${GITLAB_HOME} && chmod -R 775 ${GITLAB_HOME}
 RUN chgrp -R 0 /etc/nginx && chmod -R 775 /etc/nginx && chmod -R g=u /etc/nginx
 RUN chgrp -R 0 /var/lib/nginx && chmod -R 775 /var/lib/nginx
+RUN chgrp -R 0 /var/log/nginx && chmod -R 775 /var/log/nginx
 RUN chgrp -R 0 /etc/supervisor && chmod -R 775 /etc/supervisor
 RUN chgrp -R 0 /etc/default && chmod -R 775 /etc/default
 COPY assets/supervisord.conf /etc/supervisor/supervisord.conf
